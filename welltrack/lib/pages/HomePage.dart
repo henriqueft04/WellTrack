@@ -1,0 +1,171 @@
+import 'package:flutter/material.dart';
+import 'package:welltrack/pages/CalendarPage.dart';
+import 'package:welltrack/pages/IntroPage.dart';
+import '../components/bottom_nav_bar.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  //this selected index is to control the bottom nav bar
+  int _selectedIndex = 0;
+
+  //this methos will update our select index
+  //when the user taps on the bottom bar
+  void navigateBottomBar(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  //pages to display
+  final List<Widget> _pages = [
+    //intro page
+    const IntroPage(),
+  
+    //Calendar page
+    const CalendarPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[300],
+      bottomNavigationBar: MyBottomNavBar(
+        onTabChange: (index) => navigateBottomBar(index),
+      ),
+
+      //Menu on Top
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Builder(
+          builder:
+              (context) => IconButton(
+                icon: const Padding(
+                  padding: EdgeInsets.only(left: 12),
+                  child: Icon(Icons.menu, color: Colors.black),
+                ),
+                onPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+              ),
+        ),
+      ),
+
+      //Drawer
+      drawer: Drawer(
+        backgroundColor: Colors.grey[900],
+        child: Column(
+          //Column to everything except for the logout (end of drawer)
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            //logo
+            Column(
+              children: [
+                DrawerHeader(
+                  child: Image.asset(
+                    'lib/images/logo.png',
+                    color: Colors.white,
+                  ),
+                ),
+
+                //Dividir between logo and icons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
+                  child: Divider(color: Colors.grey[800]),
+                ),
+
+                //other pages (can be copied to add others)
+                //Home
+                Padding(
+                  padding: EdgeInsets.only(left: 25),
+                  child: ListTile(
+                    leading: Icon(Icons.home, color: Colors.white),
+                    title: Text('Home', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                  ),
+                ),
+
+                //All Shoes
+                Padding(
+                  padding: EdgeInsets.only(left: 25),
+                  child: ListTile(
+                    leading: Icon(Icons.list_rounded, color: Colors.white),
+                    title: Text(
+                      'All Shoes',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context); // Fecha o drawer primeiro
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                //About
+                /*
+                Padding(
+                  padding: EdgeInsets.only(left: 25),
+                  child: ListTile(
+                    leading: Icon(Icons.info, color: Colors.white),
+                    title: Text('About', style: TextStyle(color: Colors.white)),
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AboutPage(),
+                        ),
+                        (route) => false,
+                      );
+                    },
+                  ),
+                ),
+                */
+              ],
+            ),
+
+            //Logout
+            Padding(
+              padding: const EdgeInsets.only(left: 25, bottom: 20),
+              child: ListTile(
+                leading: const Icon(Icons.logout, color: Colors.white),
+                title: const Text(
+                  'Logout',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const IntroPage()),
+                    (route) => false,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      //Buttons to BottomnavBar
+      body: _pages[_selectedIndex],
+    );
+  }
+}

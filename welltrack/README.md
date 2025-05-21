@@ -1,16 +1,4 @@
-# welltrack
+# WellTrack
+ICM 24/25 Flutter Project
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+A mobile-first wellness journal that unites mental and physical health tracking in one seamless experience. Users can log their emotional state throughout the day, track daily steps, view weekly activity charts, and record thoughts through text, audio, photos, or videos. The app leverages native mobile functionalities like GPS, pedometer, microphone, and camera to provide accurate and real-time data. Social features allow users to connect with friends, view each other’s mood status (if shared), and discover nearby people. Designed with privacy, usability, and motivation in mind, the app acts as a personal companion to encourage a balanced and mindful lifestyle.
