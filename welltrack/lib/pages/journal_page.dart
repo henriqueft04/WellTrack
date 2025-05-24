@@ -1,0 +1,106 @@
+import 'package:flutter/material.dart';
+import '../models/data_card.dart';
+import '../models/entry_mode_button.dart';
+import '../enum/EntryMode.dart';
+
+class JournalPage extends StatefulWidget {
+  const JournalPage({super.key});
+
+  @override
+  State<JournalPage> createState() => _JournalPageState();
+}
+
+class _JournalPageState extends State<JournalPage> {
+  EntryMode _selectedMode = EntryMode.write;
+  final TextEditingController _textController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Today",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+
+              // Indicadores
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: const [
+                  DataCard(icon: Icons.directions_walk, label: "Steps", value: "12212"),
+                  DataCard(icon: Icons.local_fire_department, label: "Calories", value: "210"),
+                  DataCard(icon: Icons.map, label: "Distance", value: "2.5 km"),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              const Text(
+                "What did you do?",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+
+              // Botões de entrada
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  EntryModeButton(
+                    mode: EntryMode.write,
+                    icon: Icons.edit,
+                    label: "Write",
+                    selected: _selectedMode == EntryMode.write,
+                    onTap: () => setState(() => _selectedMode = EntryMode.write),
+                  ),
+                  EntryModeButton(
+                    mode: EntryMode.photo,
+                    icon: Icons.camera_alt,
+                    label: "Video/Photo",
+                    selected: _selectedMode == EntryMode.photo,
+                    onTap: () => setState(() => _selectedMode = EntryMode.photo),
+                  ),
+                  EntryModeButton(
+                    mode: EntryMode.audio,
+                    icon: Icons.audiotrack,
+                    label: "Audio",
+                    selected: _selectedMode == EntryMode.audio,
+                    onTap: () => setState(() => _selectedMode = EntryMode.audio),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Mostrar campo de entrada baseado no modo
+              if (_selectedMode == EntryMode.write)
+                TextField(
+                  controller: _textController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: "Title",
+                    hintText: "Describe your activity...",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+
+              if (_selectedMode == EntryMode.photo)
+                const Center(child: Text("Photo/Video input coming soon...")),
+
+              if (_selectedMode == EntryMode.audio)
+                const Center(child: Text("Audio input coming soon...")),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+

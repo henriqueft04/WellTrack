@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:welltrack/pages/journal_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
 import 'package:welltrack/pages/about_page.dart';
 import 'package:welltrack/pages/calendar_page.dart';
@@ -27,14 +28,16 @@ class _HomePageState extends State<HomePage> {
 
   //pages to display
   final List<Widget> _pages = [
-    //intro page
-    const IntroPage(),
+    //Journal page
+    const JournalPage(),
   
     //Calendar page
     const CalendarPage(),
 
+    //Stats page
     const StatsPage(),
 
+    //Profile page
     const ProfilePage(),
   ];
 
