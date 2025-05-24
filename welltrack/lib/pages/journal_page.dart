@@ -31,13 +31,23 @@ class _JournalPageState extends State<JournalPage> {
               ),
               const SizedBox(height: 16),
 
-              // Indicadores / informações do dia
+              // Indicadores / informações do dia (Chama DataCard)
+              // Steps and Calories são mostrados como inteiros, 
+              // Distance é com uma casa decimal e tem "km" no final
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: const [
-                  DataCard(icon: Icons.directions_walk, label: "Steps", value: "12212"),
-                  DataCard(icon: Icons.local_fire_department, label: "Calories", value: "210"),
-                  DataCard(icon: Icons.map, label: "Distance", value: "2.5 km"),
+                  DataCard(
+                    icon: Icons.directions_walk,
+                    label: "Steps",
+                    value: 12212.0,
+                  ),
+                  DataCard(
+                    icon: Icons.local_fire_department,
+                    label: "Calories",
+                    value: 210.0,
+                  ),
+                  DataCard(icon: Icons.map, label: "Distance", value: 2.5),
                 ],
               ),
 
@@ -50,7 +60,7 @@ class _JournalPageState extends State<JournalPage> {
               const SizedBox(height: 12),
 
               // Botões de entrada - Registo de radio buttons
-              // Vai chamar o model EntryModeButton 
+              // Vai chamar o model EntryModeButton
               //  para ir trocando modo de input
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -60,21 +70,24 @@ class _JournalPageState extends State<JournalPage> {
                     icon: Icons.edit,
                     label: "Write",
                     selected: _selectedMode == EntryMode.write,
-                    onTap: () => setState(() => _selectedMode = EntryMode.write),
+                    onTap:
+                        () => setState(() => _selectedMode = EntryMode.write),
                   ),
                   EntryModeButton(
                     mode: EntryMode.photo,
                     icon: Icons.camera_alt,
                     label: "Video/Photo",
                     selected: _selectedMode == EntryMode.photo,
-                    onTap: () => setState(() => _selectedMode = EntryMode.photo),
+                    onTap:
+                        () => setState(() => _selectedMode = EntryMode.photo),
                   ),
                   EntryModeButton(
                     mode: EntryMode.audio,
                     icon: Icons.audiotrack,
                     label: "Audio",
                     selected: _selectedMode == EntryMode.audio,
-                    onTap: () => setState(() => _selectedMode = EntryMode.audio),
+                    onTap:
+                        () => setState(() => _selectedMode = EntryMode.audio),
                   ),
                 ],
               ),
@@ -105,5 +118,3 @@ class _JournalPageState extends State<JournalPage> {
     );
   }
 }
-
-
