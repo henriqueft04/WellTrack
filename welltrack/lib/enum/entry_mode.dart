@@ -1,0 +1,1 @@
+enum EntryMode { write, photo, audio }

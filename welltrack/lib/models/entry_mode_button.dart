@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../enum/EntryMode.dart';
+import '../enum/entry_mode.dart';
 
 class EntryModeButton extends StatelessWidget {
   final EntryMode mode;

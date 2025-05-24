@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/data_card.dart';
 import '../models/entry_mode_button.dart';
-import '../enum/EntryMode.dart';
+import '../enum/entry_mode.dart';
 
 class JournalPage extends StatefulWidget {
   const JournalPage({super.key});
@@ -11,6 +11,7 @@ class JournalPage extends StatefulWidget {
 }
 
 class _JournalPageState extends State<JournalPage> {
+  // Modo de input default -> write
   EntryMode _selectedMode = EntryMode.write;
   final TextEditingController _textController = TextEditingController();
 
@@ -30,7 +31,7 @@ class _JournalPageState extends State<JournalPage> {
               ),
               const SizedBox(height: 16),
 
-              // Indicadores
+              // Indicadores / informações do dia
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: const [
@@ -48,7 +49,9 @@ class _JournalPageState extends State<JournalPage> {
               ),
               const SizedBox(height: 12),
 
-              // Botões de entrada
+              // Botões de entrada - Registo de radio buttons
+              // Vai chamar o model EntryModeButton 
+              //  para ir trocando modo de input
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -78,14 +81,14 @@ class _JournalPageState extends State<JournalPage> {
 
               const SizedBox(height: 20),
 
-              // Mostrar campo de entrada baseado no modo
+              // Mostrar campo de entrada baseado no modo escolhido
               if (_selectedMode == EntryMode.write)
                 TextField(
                   controller: _textController,
                   maxLines: 4,
                   decoration: InputDecoration(
                     labelText: "Title",
-                    hintText: "Describe your activity...",
+                    hintText: "Describe your day",
                     border: OutlineInputBorder(),
                   ),
                 ),
