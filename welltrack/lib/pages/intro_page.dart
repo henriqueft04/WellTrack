@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/HomePage.dart';
+import 'package:welltrack/pages/home_page.dart';
 
 class IntroPage extends StatelessWidget {
   const IntroPage({super.key});
@@ -52,7 +52,7 @@ class IntroPage extends StatelessWidget {
                   padding: const EdgeInsets.all(25),
                   child: const Center(
                     child: Text(
-                      'Shop Now',
+                      'Start Now',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/CalendarPage.dart';
-import 'package:welltrack/pages/IntroPage.dart';
+import 'package:welltrack/pages/stats_page.dart';
+import 'package:welltrack/pages/about_page.dart';
+import 'package:welltrack/pages/calendar_page.dart';
+import 'package:welltrack/pages/intro_page.dart';
+import 'package:welltrack/pages/profile_page.dart';
 import '../components/bottom_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
@@ -29,6 +32,10 @@ class _HomePageState extends State<HomePage> {
   
     //Calendar page
     const CalendarPage(),
+
+    const StatsPage(),
+
+    const ProfilePage(),
   ];
 
   @override
@@ -70,7 +77,6 @@ class _HomePageState extends State<HomePage> {
                 DrawerHeader(
                   child: Image.asset(
                     'lib/images/logo.png',
-                    color: Colors.white,
                   ),
                 ),
 
@@ -99,13 +105,13 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
-                //All Shoes
+                //Calendar
                 Padding(
                   padding: EdgeInsets.only(left: 25),
                   child: ListTile(
                     leading: Icon(Icons.list_rounded, color: Colors.white),
                     title: Text(
-                      'All Shoes',
+                      'Calendar',
                       style: TextStyle(color: Colors.white),
                     ),
                     onTap: () {
@@ -113,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomePage(),
+                          builder: (context) => const CalendarPage(),
                         ),
                       );
                     },
@@ -121,7 +127,6 @@ class _HomePageState extends State<HomePage> {
                 ),
 
                 //About
-                /*
                 Padding(
                   padding: EdgeInsets.only(left: 25),
                   child: ListTile(
@@ -138,7 +143,6 @@ class _HomePageState extends State<HomePage> {
                     },
                   ),
                 ),
-                */
               ],
             ),
 

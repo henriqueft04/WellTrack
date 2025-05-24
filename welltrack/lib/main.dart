@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/IntroPage.dart';
+import 'package:welltrack/pages/intro_page.dart';
 
 void main() {
   runApp(const MyApp());

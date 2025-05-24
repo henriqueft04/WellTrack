@@ -23,8 +23,9 @@ class MyBottomNavBar extends StatelessWidget {
 
         tabs: const [
           //buttons
-          GButton(icon: Icons.home, text: 'Shop'),
-          GButton(icon: Icons.shopping_bag_rounded, text: 'Cart'),
+          GButton(icon: Icons.home, text: 'Me'),
+          GButton(icon: Icons.calendar_month, text: 'Calendar'),
+          GButton(icon: Icons.stacked_bar_chart_sharp, text: 'Stats'),
           GButton(icon: Icons.person, text: 'Profile'),
 
         ],
