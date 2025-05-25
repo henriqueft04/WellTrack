@@ -30,16 +30,12 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     //Journal page
     const JournalPage(),
-  
+
     //Calendar page
     const CalendarPage(),
 
     //Stats page
-    const StatsPage(
-      steps: 12212.0,
-      calories: 210.0,
-      distance: 2.5,
-    ),
+    const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5),
 
     //Profile page
     const ProfilePage(),
@@ -78,12 +74,20 @@ class _HomePageState extends State<HomePage> {
           //Column to everything except for the logout (end of drawer)
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            //logo
+            //logo (clicável)
             Column(
               children: [
                 DrawerHeader(
-                  child: Image.asset(
-                    'lib/images/logo.png',
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    },
+                    child: Image.asset('lib/images/logo.png'),
                   ),
                 ),
 
