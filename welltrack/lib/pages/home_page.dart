@@ -35,7 +35,11 @@ class _HomePageState extends State<HomePage> {
     const CalendarPage(),
 
     //Stats page
-    const StatsPage(),
+    const StatsPage(
+      steps: 12212.0,
+      calories: 210.0,
+      distance: 2.5,
+    ),
 
     //Profile page
     const ProfilePage(),
