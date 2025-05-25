@@ -25,7 +25,11 @@ class _CalendarPageState extends State<CalendarPage> {
   bool _isDayEnabled(DateTime day) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day); // dia atual sem hora
-    final d = DateTime(day.year, day.month, day.day);     // dia a verificar sem hora
+    final d = DateTime(
+      day.year,
+      day.month,
+      day.day,
+    ); // dia a verificar sem hora
     return d.isBefore(today) || d.isAtSameMomentAs(today);
   }
 
@@ -54,7 +58,7 @@ class _CalendarPageState extends State<CalendarPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           // Botão de voltar para trás volta sempre para a HomePage
-          // pode ser mudado. O problema é que também se pode ir para 
+          // pode ser mudado. O problema é que também se pode ir para
           // Calendar desde o menú lateral
           onPressed: () {
             Navigator.pushAndRemoveUntil(
