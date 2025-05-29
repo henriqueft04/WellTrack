@@ -18,7 +18,6 @@ class _JournalPageState extends State<JournalPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFCDEDFD), // Background color
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16),
