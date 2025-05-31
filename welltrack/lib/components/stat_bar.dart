@@ -1,88 +1,70 @@
 import 'package:flutter/material.dart';
 
 class StatBar extends StatelessWidget {
-  final int index;
   final String label;
-  final double value;      // valor atual
-  final double maxValue;   // valor máximo
-
+  final double value;
+  final double maxValue;
   final Color color;
+  final String unit;
 
   const StatBar({
     super.key,
-    required this.index,
     required this.label,
     required this.value,
     required this.maxValue,
     required this.color,
+    required this.unit,
   });
 
   @override
   Widget build(BuildContext context) {
-    double percentage = (value / maxValue).clamp(0, 1);
-    String percentageText = "${(percentage * 100).toStringAsFixed(0)}%";
+    final percentage = (value / maxValue).clamp(0, 1).toDouble();
+    final percentageText = "${(percentage * 100).toStringAsFixed(0)}%";
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            index.toString().padLeft(2, '0'),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Stack(
-              alignment: Alignment.centerRight,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "${value.toStringAsFixed(0)} $unit",
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            Row(
               children: [
-                Container(
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                Expanded(
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                  ),
-                ),
-                FractionallySizedBox(
-                  widthFactor: percentage,
-                  child: Container(
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(20),
+                    child: LinearProgressIndicator(
+                      value: percentage,
+                      minHeight: 20,
+                      backgroundColor: Colors.grey.shade300,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(label,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
-                      Row(
-                        children: [
-                          Text(percentageText,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold)),
-                          const SizedBox(width: 4),
-                          const CircleAvatar(
-                            radius: 6,
-                            backgroundColor: Colors.white,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
+                const SizedBox(width: 10),
+                Text(percentageText,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
+

@@ -15,37 +15,40 @@ class StatsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define metas arbitrárias
-    const double maxSteps = 15000;
-    const double maxCalories = 500;
-    const double maxDistance = 10;
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Your Stats")),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text(
+          "Your Stats",
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             StatBar(
-              index: 1,
               label: "Steps",
               value: steps,
-              maxValue: maxSteps,
-              color: Colors.orange,
+              maxValue: 10000,
+              color: Colors.pinkAccent.shade100,
+              unit: "steps",
             ),
             StatBar(
-              index: 2,
               label: "Calories",
               value: calories,
-              maxValue: maxCalories,
-              color: Colors.pink,
+              maxValue: 500,
+              color: Colors.deepPurpleAccent.shade100,
+              unit: "calories",
             ),
             StatBar(
-              index: 3,
               label: "Distance",
               value: distance,
-              maxValue: maxDistance,
-              color: Colors.blue,
+              maxValue: 10,
+              color: Colors.lightGreenAccent.shade100,
+              unit: "kilometers",
             ),
           ],
         ),
