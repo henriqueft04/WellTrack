@@ -15,22 +15,22 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
   @override
   Widget build(BuildContext context) {
     const activeColor = Colors.white;
-    final inactiveColor = Colors.white.withOpacity(0.5); // softer, faded look
+    final inactiveColor = Colors.white.withOpacity(0.5);
 
     return CircleNavBar(
       activeIcons: const [
         Icon(Icons.home, color: activeColor),
-        Icon(Icons.calendar_month, color: activeColor),
-        Icon(Icons.stacked_bar_chart_sharp, color: activeColor),
+        Icon(Icons.location_on, color: activeColor),
+        Icon(Icons.fitness_center, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
       inactiveIcons: [
         Icon(Icons.home, color: inactiveColor),
-        Icon(Icons.calendar_month, color: inactiveColor),
-        Icon(Icons.stacked_bar_chart_sharp, color: inactiveColor),
+        Icon(Icons.location_on, color: inactiveColor),
+        Icon(Icons.fitness_center, color: inactiveColor),
         Icon(Icons.person, color: inactiveColor),
       ],
-      color: const Color.fromARGB(255, 30, 173, 245),
+      color: const Color(0xFF9CD0FF),
       height: 60,
       circleWidth: 55,
       activeIndex: _selectedIndex,
