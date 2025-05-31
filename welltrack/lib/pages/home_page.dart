@@ -83,9 +83,6 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: Scaffold(
-        bottomNavigationBar: MyBottomNavBar(
-          onTabChange: (index) => navigateBottomBar(index),
-        ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -284,8 +281,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
-      bottomNavigationBar: MyBottomNavBar(
-        onTabChange: (index) => navigateBottomBar(index),
+        bottomNavigationBar: MyBottomNavBar(
+          onTabChange: (index) => navigateBottomBar(index),
+        ),
       ),
     );
   }
