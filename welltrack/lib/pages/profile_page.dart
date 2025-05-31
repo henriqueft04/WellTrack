@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/intro_page.dart';
-import 'package:welltrack/components/user_info_widget.dart';
+import 'package:provider/provider.dart';
+import 'package:welltrack/pages/login_page.dart';
+import 'package:welltrack/providers/user_provider.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Load user profile when page opens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProvider>().loadUserProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,33 +37,65 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
 
-              // User Info from Database (for testing)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: UserInfoWidget(),
-              ),
-
               const SizedBox(height: 20),
 
-              // Profile Picture - 
-              //TO DO: why don't show the image
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: AssetImage(
-                  'lib/images/profile_photo.png',
-                ),
-              ),
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  // Show loading indicator while fetching data
+                  if (userProvider.isLoading) {
+                    return const Column(
+                      children: [
+                        CircularProgressIndicator(),
+                        SizedBox(height: 16),
+                        Text('Loading profile...'),
+                      ],
+                    );
+                  }
 
-              const SizedBox(height: 20),
+                  // Show error if something went wrong
+                  if (userProvider.error != null) {
+                    return Column(
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 50),
+                        SizedBox(height: 16),
+                        Text(
+                          'Error loading profile',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => userProvider.refresh(),
+                          child: Text('Retry'),
+                        ),
+                      ],
+                    );
+                  }
 
-              // User Info
-              const Text(
-                'Carlos verenzuela',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-              ),
-              const Text(
-                'carlos@email.com',
-                style: TextStyle(color: Colors.grey),
+                  final userProfile = userProvider.userProfile;
+                  
+                  return Column(
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundImage: userProfile?['avatar'] != null 
+                          ? NetworkImage(userProfile!['avatar']) 
+                          : const AssetImage('lib/images/profile_photo.png') as ImageProvider,
+                        child: userProfile?['avatar'] == null 
+                          ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                          : null,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        userProfile?['name'] ?? 'No Name Found',
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                      ),
+                      Text(
+                        userProfile?['email'] ?? 'No Email Found',
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 30),
@@ -76,10 +123,12 @@ class ProfilePage extends StatelessWidget {
                       icon: Icons.logout,
                       text: 'Logout',
                       onTap: () {
+                        // Clear user data on logout
+                        context.read<UserProvider>().clearUser();
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const IntroPage(),
+                            builder: (context) => const LoginPage(),
                           ),
                           (route) => false,
                         );
