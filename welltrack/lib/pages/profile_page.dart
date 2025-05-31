@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/pages/intro_page.dart';
+import 'package:welltrack/components/user_info_widget.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -7,79 +8,88 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFCDEDFD), // Background color
       body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              alignment: Alignment.centerLeft,
-              child: const Text(
-                'My Profile',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(20),
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'My Profile',
+                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
 
-            // Profile Picture - 
-            //TO DO: why don't show the image
-            CircleAvatar(
-              radius: 50,
-              backgroundImage: AssetImage(
-                'lib/images/profile_photo.png',
+              // User Info from Database (for testing)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: UserInfoWidget(),
               ),
-            ),
 
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // User Info
-            const Text(
-              'Carlos verenzuela',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            ),
-            const Text(
-              'carlos@email.com',
-              style: TextStyle(color: Colors.grey),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Buttons or Options
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                children: [
-                  ProfileButton(
-                    icon: Icons.edit,
-                    text: 'Editar Perfil',
-                    onTap: () {
-                      // TO DO
-                    },
-                  ),
-                  ProfileButton(
-                    icon: Icons.settings,
-                    text: 'Definições',
-                    onTap: () {
-                      // TO DO
-                    },
-                  ),
-                  ProfileButton(
-                    icon: Icons.logout,
-                    text: 'Logout',
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const IntroPage(),
-                        ),
-                        (route) => false,
-                      );
-                    },
-                  ),
-                ],
+              // Profile Picture - 
+              //TO DO: why don't show the image
+              CircleAvatar(
+                radius: 50,
+                backgroundImage: AssetImage(
+                  'lib/images/profile_photo.png',
+                ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // User Info
+              const Text(
+                'Carlos verenzuela',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+              ),
+              const Text(
+                'carlos@email.com',
+                style: TextStyle(color: Colors.grey),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Buttons or Options
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Column(
+                  children: [
+                    ProfileButton(
+                      icon: Icons.edit,
+                      text: 'Editar Perfil',
+                      onTap: () {
+                        // TO DO
+                      },
+                    ),
+                    ProfileButton(
+                      icon: Icons.settings,
+                      text: 'Definições',
+                      onTap: () {
+                        // TO DO
+                      },
+                    ),
+                    ProfileButton(
+                      icon: Icons.logout,
+                      text: 'Logout',
+                      onTap: () {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const IntroPage(),
+                          ),
+                          (route) => false,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

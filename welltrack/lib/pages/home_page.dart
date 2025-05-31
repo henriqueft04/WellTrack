@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:welltrack/pages/journal_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
-import 'package:welltrack/pages/about_page.dart';
 import 'package:welltrack/pages/calendar_page.dart';
-import 'package:welltrack/pages/intro_page.dart';
 import 'package:welltrack/pages/profile_page.dart';
+import 'package:welltrack/pages/mental_state_page.dart';
 import '../components/bottom_nav_bar.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,172 +15,277 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  //this selected index is to control the bottom nav bar
   int _selectedIndex = 0;
+  double _moodValue = 1.0; // 0 = unpleasant, 1 = neutral, 2 = pleasant
+  int _selectedDayIndex = 3; // Index for the 16th in the mockup
 
-  //this methos will update our select index
-  //when the user taps on the bottom bar
   void navigateBottomBar(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
 
-  //pages to display
+  void _onMoodChanged(double value) {
+    setState(() {
+      _moodValue = value;
+    });
+  }
+
+  void _onDayTapped(int index) {
+    setState(() {
+      _selectedDayIndex = index;
+    });
+  }
+
   final List<Widget> _pages = [
-    //Journal page
     const JournalPage(),
-
-    //Calendar page
     const CalendarPage(),
-
-    //Stats page
     const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5),
-
-    //Profile page
     const ProfilePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color.fromARGB(255, 93, 189, 236), // Background color
-      bottomNavigationBar: MyBottomNavBar(
-        onTabChange: (index) => navigateBottomBar(index),
-      ),
-
-      //Menu on Top
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Builder(
-          builder:
-              (context) => IconButton(
-                icon: const Padding(
-                  padding: EdgeInsets.only(left: 12),
-                  child: Icon(Icons.menu, color: Colors.black),
-                ),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
-              ),
+    if (_selectedIndex != 0) {
+      return Scaffold(
+        bottomNavigationBar: MyBottomNavBar(
+          onTabChange: (index) => navigateBottomBar(index),
         ),
-      ),
+        body: _pages[_selectedIndex],
+      );
+    }
 
-      //Drawer
-      drawer: Drawer(
-        backgroundColor: Colors.grey[900],
-        child: Column(
-          //Column to everything except for the logout (end of drawer)
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            //logo (clicável)
-            Column(
-              children: [
-                DrawerHeader(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomePage(),
-                        ),
-                      );
-                    },
-                    child: Image.asset('lib/images/logo.png'),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        // Show confirmation dialog before exiting app
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to exit the app?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Exit'),
+              ),
+            ],
+          ),
+        );
+        if (shouldExit ?? false) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        bottomNavigationBar: MyBottomNavBar(
+          onTabChange: (index) => navigateBottomBar(index),
+        ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Logo at top
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Image.asset(
+                  'lib/images/martim.png',
+                  height: 50,
+                ),
+              ),
+              // Mood Slider
+              // Replace the existing Slider with this SliderTheme to match the mockup:
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 12,
+                    activeTrackColor: const Color(0xFF9CD0FF),
+                    inactiveTrackColor: const Color(0xFF9CD0FF),
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 20),
+                    overlayShape: SliderComponentShape.noOverlay,
+                    thumbColor: Colors.white,
+                    trackShape: RoundedRectSliderTrackShape(),
+                  ),
+                  child: Slider(
+                    min: 0,
+                    max: 2,
+                    divisions: 4,
+                    value: _moodValue,
+                    onChanged: _onMoodChanged,
                   ),
                 ),
-
-                //Dividir between logo and icons
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25),
-                  child: Divider(color: Colors.grey[800]),
-                ),
-
-                //other pages (can be copied to add others)
-                //Home
-                Padding(
-                  padding: EdgeInsets.only(left: 25),
-                  child: ListTile(
-                    leading: Icon(Icons.home, color: Colors.white),
-                    title: Text('Home', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomePage(),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('unpleasant'),
+                  Text(''),
+                  Text('neutral'),
+                  Text(''),
+                  Text('pleasant'),
+                ],
+              ),
+              // Horizontal Calendar
+              SizedBox(
+                height: 80,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    final weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+                    final dates = [12, 13, 14, 15, 16, 17, 18];
+                    final isSelected = index == _selectedDayIndex;
+                    return GestureDetector(
+                      onTap: () => _onDayTapped(index),
+                      child: Container(
+                        width: 50,
+                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          color: isSelected ? Colors.blue[100] : Colors.transparent,
+                          shape: BoxShape.circle,
                         ),
-                        (route) => false,
-                      );
-                    },
-                  ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              weekDays[index],
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected ? Colors.blue : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              dates[index].toString(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: isSelected ? Colors.blue : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-
-                //Calendar
-                Padding(
-                  padding: EdgeInsets.only(left: 25),
-                  child: ListTile(
-                    leading: Icon(Icons.list_rounded, color: Colors.white),
-                    title: Text(
-                      'Calendar',
-                      style: TextStyle(color: Colors.white),
+              ),
+              const SizedBox(height: 24),
+              // Cards for Mental State and Stats
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const MentalStatePage()),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 187, 186, 186),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          
+                          children: const [
+                            SizedBox(width: 16),
+                            Icon(Icons.sentiment_satisfied, size: 40, color: Colors.white),
+                            SizedBox(width: 16),
+                            Text(
+                              'mental state',
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    onTap: () {
-                      Navigator.pop(context); // Fecha o drawer primeiro
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const CalendarPage(),
+                    const SizedBox(height: 16),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5)),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 187, 186, 186),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                //About
-                Padding(
-                  padding: EdgeInsets.only(left: 25),
-                  child: ListTile(
-                    leading: Icon(Icons.info, color: Colors.white),
-                    title: Text('About', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const AboutPage(),
+                        child: Row(
+                          children: const [
+                            SizedBox(width: 16),
+                            Icon(Icons.pie_chart, size: 40, color: Colors.white),
+                            SizedBox(width: 16),
+                            Text(
+                              'stats',
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                            ),
+                          ],
                         ),
-                        (route) => false,
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-
-            //Logout
-            Padding(
-              padding: const EdgeInsets.only(left: 25, bottom: 20),
-              child: ListTile(
-                leading: const Icon(Icons.logout, color: Colors.white),
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const IntroPage()),
-                    (route) => false,
-                  );
-                },
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              // Bottom Stats Row
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                decoration: BoxDecoration(
+                  border: Border(
+                    top: BorderSide(color: Colors.grey.shade300),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Column(
+                      children: const [
+                        Icon(Icons.location_on, size: 28, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('327'),
+                      ],
+                    ),
+                    Column(
+                      children: const [
+                        Icon(Icons.local_fire_department, size: 28, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('327'),
+                      ],
+                    ),
+                    Column(
+                      children: const [
+                        Icon(Icons.directions_run, size: 28, color: Colors.black),
+                        SizedBox(height: 4),
+                        Text('5.3 km'),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-
-      //Buttons to BottomnavBar
-      body: _pages[_selectedIndex],
+      //bottomNavigationBar: MyBottomNavBar(
+      //  onTabChange: (index) => navigateBottomBar(index),
+      //),
+      ),
     );
   }
 }
