@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/intro_page.dart';
+import 'package:welltrack/pages/home_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -70,7 +70,7 @@ class ProfilePage extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const IntroPage(),
+                          builder: (context) => const HomePage(),
                         ),
                         (route) => false,
                       );
