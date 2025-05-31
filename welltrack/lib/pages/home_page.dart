@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:welltrack/pages/journal_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
 import 'package:welltrack/pages/about_page.dart';
@@ -56,7 +57,35 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        // Show confirmation dialog before exiting app
+        final shouldExit = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to exit the app?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Exit'),
+              ),
+            ],
+          ),
+        );
+        if (shouldExit ?? false) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        bottomNavigationBar: MyBottomNavBar(
+          onTabChange: (index) => navigateBottomBar(index),
+        ),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(

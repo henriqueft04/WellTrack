@@ -1,48 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/pages/home_page.dart';
-import 'package:welltrack/main.dart';
-import 'package:sign_button/sign_button.dart';
-import 'package:welltrack/pages/sign_up_page.dart';
 import 'package:welltrack/components/email_pass.dart';
 import 'package:welltrack/controllers/sign_up_controller.dart';
+import 'package:sign_button/sign_button.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  String? _userId;
+class _SignUpPageState extends State<SignUpPage> {
+  final SignUpController signUpController = SignUpController();
   bool _isLoading = false;
-  final SignUpController authController = SignUpController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      _userId = supabase.auth.currentUser?.id;
-    });
-
-    supabase.auth.onAuthStateChange.listen((event) {
-      if (mounted) {
-        setState(() {
-          _userId = event.session?.user.id;
-          _isLoading = false;
-        });
-        
-        // Only auto-navigate if not currently processing a Google sign-in
-        if (_userId != null && !_isLoading) {
-          // Check if we're not already on HomePage to avoid navigation loops
-          // This listener is mainly for initial app state, not explicit sign-ins
-        }
-      }
-    });
-  }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() {
@@ -50,13 +24,13 @@ class _LoginPageState extends State<LoginPage> {
     });
     
     try {
-      bool success = await authController.signInWithGoogle();
+      bool success = await signUpController.signInWithGoogle();
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Signed in with Google successfully!'),
-              backgroundColor: HexColor("#DEC5E3"),
+              backgroundColor: Colors.green,
             ),
           );
           
@@ -97,10 +71,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _handleSignOut() async {
-    await supabase.auth.signOut();
-  }
-
   Widget googleSignInButton() {
     return SignInButton(
       buttonType: ButtonType.google,
@@ -109,13 +79,13 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void showErrorMessage(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(title: Text(message));
-      },
-    );
+  void validateEmail(String email) {
+    // Email validation is handled in the EmailPass component
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -160,10 +130,11 @@ class _LoginPageState extends State<LoginPage> {
                         child: Column(
                           children: [
                             EmailPass(
-                              title: "Log In",
-                              buttonText: "Sign In",
-                              showBackButton: false,
-                              showNameField: false, // No name field for login
+                              title: "Sign Up",
+                              buttonText: "Create Account",
+                              showBackButton: true,
+                              showNameField: true,
+                              onBackPressed: () => Navigator.pop(context),
                               onSubmit: (email, password, name) async {
                                 // Show loading
                                 showDialog(
@@ -175,7 +146,11 @@ class _LoginPageState extends State<LoginPage> {
                                 );
 
                                 try {
-                                  final result = await authController.signInUser(email, password);
+                                  final result = await signUpController.registerUser(
+                                    email,
+                                    password,
+                                    name: name,
+                                  );
 
                                   // Hide loading
                                   if (mounted) Navigator.pop(this.context);
@@ -195,17 +170,22 @@ class _LoginPageState extends State<LoginPage> {
                                         MaterialPageRoute(
                                           builder: (context) => const HomePage(),
                                         ),
-                                        (route) => false, // Remove all previous routes
+                                        (route) => false,
                                       );
                                     }
                                   } else {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(this.context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(result['message']),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
+                                    // Check if email already exists
+                                    if (result['emailExists'] == true) {
+                                      if (mounted) _showEmailExistsDialog(this.context, email);
+                                    } else {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(this.context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(result['message']),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
                                     }
                                   }
                                 } catch (e) {
@@ -231,14 +211,14 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [googleSignInButton()],
                               ),
                             ),
-                            // Navigation to Sign Up
+                            // Navigation to Login
                             Padding(
                               padding: const EdgeInsets.fromLTRB(35, 0, 35, 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Don't have an account?",
+                                    "Already have an account?",
                                     style: GoogleFonts.poppins(
                                       fontSize: 15,
                                       color: HexColor("#8d8d8d"),
@@ -246,16 +226,16 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   TextButton(
                                     child: Text(
-                                      "Sign Up",
+                                      "Log In",
                                       style: GoogleFonts.poppins(
                                         fontSize: 15,
                                         color: HexColor("#44564a"),
                                       ),
                                     ),
-                                    onPressed: () => Navigator.push(
+                                    onPressed: () => Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const SignUpPage(),
+                                        builder: (context) => const LoginPage(),
                                       ),
                                     ),
                                   ),
@@ -272,6 +252,36 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEmailExistsDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Already Registered'),
+        content: Text(
+          'The email $email is already registered.\n\nWould you like to log in instead?',
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            child: const Text('Go to Login'),
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
