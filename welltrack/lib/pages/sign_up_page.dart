@@ -1,48 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/pages/home_page.dart';
-import 'package:welltrack/main.dart';
-import 'package:sign_button/sign_button.dart';
-import 'package:welltrack/pages/sign_up_page.dart';
 import 'package:welltrack/components/email_pass.dart';
 import 'package:welltrack/controllers/sign_up_controller.dart';
+import 'package:sign_button/sign_button.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class SignUpPage extends StatefulWidget {
+  const SignUpPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  String? _userId;
+class _SignUpPageState extends State<SignUpPage> {
+  final SignUpController signUpController = SignUpController();
   bool _isLoading = false;
-  final SignUpController authController = SignUpController();
-
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      _userId = supabase.auth.currentUser?.id;
-    });
-
-    supabase.auth.onAuthStateChange.listen((event) {
-      if (mounted) {
-        setState(() {
-          _userId = event.session?.user.id;
-          _isLoading = false;
-        });
-        
-        // Only auto-navigate if not currently processing a Google sign-in
-        if (_userId != null && !_isLoading) {
-          // Check if we're not already on HomePage to avoid navigation loops
-          // This listener is mainly for initial app state, not explicit sign-ins
-        }
-      }
-    });
-  }
 
   Future<void> _handleGoogleSignIn() async {
     setState(() {
@@ -50,13 +24,13 @@ class _LoginPageState extends State<LoginPage> {
     });
     
     try {
-      bool success = await authController.signInWithGoogle();
+      bool success = await signUpController.signInWithGoogle();
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('Signed in with Google successfully!'),
-              backgroundColor: HexColor("#DEC5E3"),
+              backgroundColor: Colors.green,
             ),
           );
           
@@ -96,10 +70,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _handleSignOut() async {
-    await supabase.auth.signOut();
-  }
-
   Widget googleSignInButton() {
     return SignInButton(
       buttonType: ButtonType.google,
@@ -108,13 +78,13 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void showErrorMessage(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(title: Text(message));
-      },
-    );
+  void validateEmail(String email) {
+    // Email validation is handled in the EmailPass component
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -159,9 +129,10 @@ class _LoginPageState extends State<LoginPage> {
                         child: Column(
                           children: [
                             EmailPass(
-                              title: "Log In",
-                              buttonText: "Sign In",
-                              showBackButton: false,
+                              title: "Sign Up",
+                              buttonText: "Create Account",
+                              showBackButton: true,
+                              onBackPressed: () => Navigator.pop(context),
                               onSubmit: (email, password) async {
                                 // Show loading
                                 showDialog(
@@ -173,16 +144,20 @@ class _LoginPageState extends State<LoginPage> {
                                 );
 
                                 try {
-                                  bool success = await authController.signInUser(email, password);
+                                  bool success = await signUpController.registerUser(
+                                    email,
+                                    password,
+                                    userType: 'Patient', // Default user type
+                                  );
 
                                   // Hide loading
                                   Navigator.pop(context);
 
                                   if (success) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Signed in successfully!'),
-                                        backgroundColor: Colors.green,
+                                      SnackBar(
+                                        content: Text('Account created successfully!'),
+                                        backgroundColor: HexColor("#DEC5E3"),
                                       ),
                                     );
                                     
@@ -196,7 +171,7 @@ class _LoginPageState extends State<LoginPage> {
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Invalid email or password'),
+                                        content: Text('Failed to create account. Please try again.'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
@@ -222,14 +197,14 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [googleSignInButton()],
                               ),
                             ),
-                            // Navigation to Sign Up
+                            // Navigation to Login
                             Padding(
                               padding: const EdgeInsets.fromLTRB(35, 0, 35, 20),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    "Don't have an account?",
+                                    "Already have an account?",
                                     style: GoogleFonts.poppins(
                                       fontSize: 15,
                                       color: HexColor("#8d8d8d"),
@@ -237,16 +212,16 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   TextButton(
                                     child: Text(
-                                      "Sign Up",
+                                      "Log In",
                                       style: GoogleFonts.poppins(
                                         fontSize: 15,
                                         color: HexColor("#44564a"),
                                       ),
                                     ),
-                                    onPressed: () => Navigator.push(
+                                    onPressed: () => Navigator.pushReplacement(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => const SignUpPage(),
+                                        builder: (context) => const LoginPage(),
                                       ),
                                     ),
                                   ),
