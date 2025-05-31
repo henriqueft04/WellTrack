@@ -34,8 +34,17 @@ class _StatsPageState extends State<StatsPage> {
     const double maxDistance = 6;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF9F6FB),
-      body: SafeArea(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: const Text(
+          "Your Stats",
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const SizedBox(height: 24),
@@ -195,7 +204,6 @@ class _StatCard extends StatelessWidget {
                 valueText,
                 style: const TextStyle(
                   fontSize: 32,
-                  fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),

@@ -279,6 +279,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+      //bottomNavigationBar: MyBottomNavBar(
+      //  onTabChange: (index) => navigateBottomBar(index),
+      //),
         bottomNavigationBar: MyBottomNavBar(
           onTabChange: (index) => navigateBottomBar(index),
         ),
