@@ -8,8 +8,9 @@ class EmailPass extends StatefulWidget {
   final String title;
   final String buttonText;
   final VoidCallback? onBackPressed;
-  final Function(String email, String password)? onSubmit;
+  final Function(String email, String password, String? name)? onSubmit;
   final bool showBackButton;
+  final bool showNameField;
 
   const EmailPass({
     super.key,
@@ -18,6 +19,7 @@ class EmailPass extends StatefulWidget {
     this.onBackPressed,
     this.onSubmit,
     this.showBackButton = true,
+    this.showNameField = false,
   });
 
   @override
@@ -27,6 +29,7 @@ class EmailPass extends StatefulWidget {
 class _EmailPassState extends State<EmailPass> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   String _errorMessage = "";
 
   void validateEmail(String email) {
@@ -66,7 +69,7 @@ class _EmailPassState extends State<EmailPass> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(30, 20, 30, 0),
+      padding: const EdgeInsets.fromLTRB(30, 20, 30, 20),
       child: Column(
         children: [
           Row(
@@ -92,10 +95,41 @@ class _EmailPassState extends State<EmailPass> {
           ),
           const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.fromLTRB(15, 0, 0, 20),
+            padding: const EdgeInsets.fromLTRB(15, 0, 0, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Name Input (conditionally shown)
+                if (widget.showNameField) ...[
+                  Text(
+                    "Name",
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      color: HexColor("#8d8d8d"),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: nameController,
+                    cursorColor: HexColor("#4f4f4f"),
+                    decoration: InputDecoration(
+                      hintText: "Your full name",
+                      fillColor: HexColor("#f0f3f1"),
+                      contentPadding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                      hintStyle: GoogleFonts.poppins(
+                        fontSize: 15,
+                        color: HexColor("#8d8d8d"),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      filled: true,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                
                 // Email Input
                 Text(
                   "Email",
@@ -170,17 +204,29 @@ class _EmailPassState extends State<EmailPass> {
                 myButton(
                   buttonText: widget.buttonText,
                   onPressed: () {
-                    if (emailController.text.isNotEmpty &&
+                    bool isValid = emailController.text.isNotEmpty &&
                         passwordController.text.isNotEmpty &&
-                        _errorMessage.isEmpty) {
+                        _errorMessage.isEmpty;
+                    
+                    // If name field is shown, validate it too
+                    if (widget.showNameField) {
+                      isValid = isValid && nameController.text.isNotEmpty;
+                    }
+
+                    if (isValid) {
                       widget.onSubmit?.call(
                         emailController.text,
                         passwordController.text,
+                        widget.showNameField ? nameController.text : null,
                       );
                     } else {
+                      String errorMsg = 'Please fill all fields correctly';
+                      if (widget.showNameField && nameController.text.isEmpty) {
+                        errorMsg = 'Please enter your name';
+                      }
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please fill all fields correctly'),
+                        SnackBar(
+                          content: Text(errorMsg),
                           backgroundColor: Colors.red,
                         ),
                       );

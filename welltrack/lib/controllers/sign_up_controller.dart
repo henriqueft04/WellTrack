@@ -27,40 +27,68 @@ class SignUpController {
     _password = null;
   }
 
+  // Check if email already exists in auth system
+  Future<bool> checkIfEmailExists(String email) async {
+    try {
+      // Try to trigger a password reset for the email
+      // If it succeeds, the email exists; if it fails, it doesn't
+      await supabase.auth.resetPasswordForEmail(email);
+      return true; // Email exists
+    } catch (e) {
+      // If we get an error, it might mean the email doesn't exist
+      // But we should be careful with this approach
+      return false; // Assume email doesn't exist
+    }
+  }
+
   // Register user with email and password
-  Future<bool> registerUser(String email, String password, {String? userType}) async {
+  Future<Map<String, dynamic>> registerUser(String email, String password, {String? name}) async {
     try {
       final AuthResponse response = await supabase.auth.signUp(
         email: email,
         password: password,
         data: {
-          'user_type': userType ?? 'Patient',
-          'full_name': '',
+          'full_name': name ?? '',
         },
       );
 
       if (response.user != null) {
         debugPrint('User registered successfully: ${response.user!.id}');
         
-        // Insert additional user data into profiles table if needed
-        await _createUserProfile(response.user!, userType ?? 'Patient');
+        // Create user in public.users table
+        await _createUserInUsersTable(
+          response.user!,
+          name: name ?? '',
+        );
         
-        return true;
+        return {'success': true, 'message': 'Account created successfully!'};
       } else {
         debugPrint('Registration failed: No user returned');
-        return false;
+        return {'success': false, 'message': 'Registration failed. Please try again.'};
       }
     } on AuthException catch (e) {
       debugPrint('Auth error during registration: ${e.message}');
-      return false;
+      
+      // Check for specific error messages that indicate email already exists
+      if (e.message.toLowerCase().contains('already') || 
+          e.message.toLowerCase().contains('exists') ||
+          e.message.toLowerCase().contains('registered')) {
+        return {
+          'success': false, 
+          'message': 'This email is already registered.',
+          'emailExists': true
+        };
+      }
+      
+      return {'success': false, 'message': 'Registration failed: ${e.message}'};
     } catch (e) {
       debugPrint('Unknown error during registration: $e');
-      return false;
+      return {'success': false, 'message': 'Registration failed: ${e.toString()}'};
     }
   }
 
   // Sign in user with email and password
-  Future<bool> signInUser(String email, String password) async {
+  Future<Map<String, dynamic>> signInUser(String email, String password) async {
     try {
       final AuthResponse response = await supabase.auth.signInWithPassword(
         email: email,
@@ -69,17 +97,28 @@ class SignUpController {
 
       if (response.user != null) {
         debugPrint('User signed in successfully: ${response.user!.id}');
-        return true;
+        
+        // Check if user exists in users table, create if not
+        await _ensureUserExistsInUsersTable(response.user!);
+        
+        return {'success': true, 'message': 'Signed in successfully!'};
       } else {
         debugPrint('Sign in failed: No user returned');
-        return false;
+        return {'success': false, 'message': 'Sign in failed. Please try again.'};
       }
     } on AuthException catch (e) {
       debugPrint('Auth error during sign in: ${e.message}');
-      return false;
+      
+      if (e.message.toLowerCase().contains('invalid') || 
+          e.message.toLowerCase().contains('credentials') ||
+          e.message.toLowerCase().contains('password')) {
+        return {'success': false, 'message': 'Invalid email or password'};
+      }
+      
+      return {'success': false, 'message': 'Sign in failed: ${e.message}'};
     } catch (e) {
       debugPrint('Unknown error during sign in: $e');
-      return false;
+      return {'success': false, 'message': 'Sign in failed: ${e.toString()}'};
     }
   }
 
@@ -92,8 +131,11 @@ class SignUpController {
       if (user != null) {
         debugPrint('Google sign in successful: ${user.id}');
         
-        // Create profile if it's a new user
-        await _createUserProfile(user, 'Patient');
+        // Create or update user in public.users table
+        await _createUserInUsersTable(
+          user,
+          name: user.userMetadata?['full_name'] ?? '',
+        );
         
         return true;
       } else {
@@ -106,35 +148,113 @@ class SignUpController {
     }
   }
 
-  // Create user profile in database
-  Future<void> _createUserProfile(User user, String userType) async {
+  // Create user in public.users table
+  Future<void> _createUserInUsersTable(User user, {String? name}) async {
     try {
-      // Check if profile already exists
-      final existingProfile = await supabase
-          .from('profiles')
+      // Check if user already exists
+      final existingUser = await supabase
+          .from('users')
           .select()
-          .eq('id', user.id)
+          .eq('email', user.email!)
           .maybeSingle();
 
-      if (existingProfile == null) {
-        // Create new profile
-        await supabase.from('profiles').insert({
-          'id': user.id,
+      if (existingUser == null) {
+        // Create new user
+        await supabase.from('users').insert({
+          'name': name ?? user.userMetadata?['full_name'] ?? '',
           'email': user.email,
-          'user_type': userType,
-          'full_name': user.userMetadata?['full_name'] ?? '',
-          'avatar_url': user.userMetadata?['avatar_url'] ?? '',
-          'created_at': DateTime.now().toIso8601String(),
-          'updated_at': DateTime.now().toIso8601String(),
+          'avatar': user.userMetadata?['avatar_url'] ?? '',
+          'mental_state': 'ok', // Default mental state
         });
 
-        debugPrint('User profile created successfully');
+        debugPrint('User created in users table successfully');
       } else {
-        debugPrint('User profile already exists');
+        debugPrint('User already exists in users table');
       }
     } catch (e) {
-      debugPrint('Error creating user profile: $e');
-      // Don't throw error here as user registration was successful
+      debugPrint('Error creating user in users table: $e');
+      // Don't throw error here as authentication was successful
+    }
+  }
+
+  // Ensure user exists in users table (for existing auth users)
+  Future<void> _ensureUserExistsInUsersTable(User user) async {
+    try {
+      final existingUser = await supabase
+          .from('users')
+          .select()
+          .eq('email', user.email!)
+          .maybeSingle();
+
+      if (existingUser == null) {
+        await _createUserInUsersTable(user);
+      }
+    } catch (e) {
+      debugPrint('Error ensuring user exists in users table: $e');
+    }
+  }
+
+  // Get user profile from users table
+  Future<Map<String, dynamic>?> getUserProfile() async {
+    try {
+      final authUser = supabase.auth.currentUser;
+      if (authUser == null) return null;
+
+      final response = await supabase
+          .from('users')
+          .select()
+          .eq('email', authUser.email!)
+          .single();
+
+      return response;
+    } catch (e) {
+      debugPrint('Error fetching user profile: $e');
+      return null;
+    }
+  }
+
+  // Update user profile in users table
+  Future<bool> updateUserProfile(Map<String, dynamic> updates) async {
+    try {
+      final authUser = supabase.auth.currentUser;
+      if (authUser == null) return false;
+
+      await supabase
+          .from('users')
+          .update(updates)
+          .eq('email', authUser.email!);
+
+      debugPrint('User profile updated successfully');
+      return true;
+    } catch (e) {
+      debugPrint('Error updating user profile: $e');
+      return false;
+    }
+  }
+
+  // Update user's mental state
+  Future<bool> updateMentalState(String mentalState) async {
+    return await updateUserProfile({'mental_state': mentalState});
+  }
+
+  // Update user's name
+  Future<bool> updateUserName(String name) async {
+    return await updateUserProfile({'name': name});
+  }
+
+  // Update user's avatar
+  Future<bool> updateUserAvatar(String avatarUrl) async {
+    return await updateUserProfile({'avatar': avatarUrl});
+  }
+
+  // Get current user's mental state
+  Future<String?> getUserMentalState() async {
+    try {
+      final profile = await getUserProfile();
+      return profile?['mental_state'];
+    } catch (e) {
+      debugPrint('Error getting user mental state: $e');
+      return null;
     }
   }
 

@@ -61,11 +61,12 @@ class _LoginPageState extends State<LoginPage> {
           );
           
           // Navigate to home page
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (context) => const HomePage(),
             ),
+            (route) => false, // Remove all previous routes
           );
         }
       } else {
@@ -162,7 +163,8 @@ class _LoginPageState extends State<LoginPage> {
                               title: "Log In",
                               buttonText: "Sign In",
                               showBackButton: false,
-                              onSubmit: (email, password) async {
+                              showNameField: false, // No name field for login
+                              onSubmit: (email, password, name) async {
                                 // Show loading
                                 showDialog(
                                   context: context,
@@ -173,44 +175,51 @@ class _LoginPageState extends State<LoginPage> {
                                 );
 
                                 try {
-                                  bool success = await authController.signInUser(email, password);
+                                  final result = await authController.signInUser(email, password);
 
                                   // Hide loading
-                                  Navigator.pop(context);
+                                  if (mounted) Navigator.pop(this.context);
 
-                                  if (success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Signed in successfully!'),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                    
-                                    // Navigate to home page
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const HomePage(),
-                                      ),
-                                    );
+                                  if (result['success']) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(this.context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(result['message']),
+                                          backgroundColor: HexColor("#DEC5E3"),
+                                        ),
+                                      );
+                                      
+                                      // Navigate to home page
+                                      Navigator.pushAndRemoveUntil(
+                                        this.context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const HomePage(),
+                                        ),
+                                        (route) => false, // Remove all previous routes
+                                      );
+                                    }
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Invalid email or password'),
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(this.context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(result['message']),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  // Hide loading
+                                  if (mounted) Navigator.pop(this.context);
+                                  
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: ${e.toString()}'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
                                   }
-                                } catch (e) {
-                                  // Hide loading
-                                  Navigator.pop(context);
-                                  
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
                                 }
                               },
                             ),

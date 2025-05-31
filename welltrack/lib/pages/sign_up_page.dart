@@ -35,11 +35,12 @@ class _SignUpPageState extends State<SignUpPage> {
           );
           
           // Navigate to home page
-          Navigator.pushReplacement(
+          Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (context) => const HomePage(),
             ),
+            (route) => false, // Remove all previous routes
           );
         }
       } else {
@@ -132,8 +133,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               title: "Sign Up",
                               buttonText: "Create Account",
                               showBackButton: true,
+                              showNameField: true,
                               onBackPressed: () => Navigator.pop(context),
-                              onSubmit: (email, password) async {
+                              onSubmit: (email, password, name) async {
                                 // Show loading
                                 showDialog(
                                   context: context,
@@ -144,48 +146,60 @@ class _SignUpPageState extends State<SignUpPage> {
                                 );
 
                                 try {
-                                  bool success = await signUpController.registerUser(
+                                  final result = await signUpController.registerUser(
                                     email,
                                     password,
-                                    userType: 'Patient', // Default user type
+                                    name: name,
                                   );
 
                                   // Hide loading
-                                  Navigator.pop(context);
+                                  if (mounted) Navigator.pop(this.context);
 
-                                  if (success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Account created successfully!'),
-                                        backgroundColor: HexColor("#DEC5E3"),
-                                      ),
-                                    );
-                                    
-                                    // Navigate to home page
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const HomePage(),
-                                      ),
-                                    );
+                                  if (result['success']) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(this.context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(result['message']),
+                                          backgroundColor: HexColor("#DEC5E3"),
+                                        ),
+                                      );
+                                      
+                                      // Navigate to home page
+                                      Navigator.pushAndRemoveUntil(
+                                        this.context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const HomePage(),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    }
                                   } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Failed to create account. Please try again.'),
+                                    // Check if email already exists
+                                    if (result['emailExists'] == true) {
+                                      if (mounted) _showEmailExistsDialog(this.context, email);
+                                    } else {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(this.context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(result['message']),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  }
+                                } catch (e) {
+                                  // Hide loading
+                                  if (mounted) Navigator.pop(this.context);
+                                  
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(this.context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: ${e.toString()}'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
                                   }
-                                } catch (e) {
-                                  // Hide loading
-                                  Navigator.pop(context);
-                                  
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error: ${e.toString()}'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
                                 }
                               },
                             ),
@@ -238,6 +252,36 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showEmailExistsDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Already Registered'),
+        content: Text(
+          'The email $email is already registered.\n\nWould you like to log in instead?',
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+          ),
+          ElevatedButton(
+            child: const Text('Go to Login'),
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const LoginPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
