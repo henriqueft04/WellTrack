@@ -26,12 +26,12 @@ class _JournalPageState extends State<JournalPage> {
             children: [
               const Text(
                 "Today",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
 
               // Indicadores / informações do dia (Chama DataCard)
-              // Steps and Calories são mostrados como inteiros, 
+              // Steps and Calories são mostrados como inteiros,
               // Distance é com uma casa decimal e tem "km" no final
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,

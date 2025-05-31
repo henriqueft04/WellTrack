@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:welltrack/pages/login_page.dart';
-import 'package:welltrack/pages/home_page.dart';
 
 class EmailPass extends StatefulWidget {
   final String title;

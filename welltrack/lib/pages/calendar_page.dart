@@ -54,7 +54,10 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       // Cabeçalho da página com botão para voltar atrás
       appBar: AppBar(
-        title: const Text('Calendar'),
+        title: const Text(
+          'Calendar',
+          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           // Botão de voltar para trás volta sempre para a HomePage

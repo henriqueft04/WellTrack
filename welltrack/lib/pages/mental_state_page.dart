@@ -630,17 +630,18 @@ class SeeMyThoughtsPage extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: _ChatBubble(
+              color: Colors.blue.shade50,
               child: Image.network(
                 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg',
                 height: 120,
               ),
-              color: Colors.blue.shade50,
             ),
           ),
           // Example audio entry
           Align(
             alignment: Alignment.centerLeft,
             child: _ChatBubble(
+              color: Colors.grey.shade100,
               child: Row(
                 children: [
                   IconButton(
@@ -666,7 +667,6 @@ class SeeMyThoughtsPage extends StatelessWidget {
                   const Text('1:51 minutes'),
                 ],
               ),
-              color: Colors.grey.shade100,
             ),
           ),
         ],
