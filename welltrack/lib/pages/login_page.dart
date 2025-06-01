@@ -35,10 +35,12 @@ class _LoginPageState extends State<LoginPage> {
           _isLoading = false;
         });
         
-        // Only auto-navigate if not currently processing a Google sign-in
         if (_userId != null && !_isLoading) {
-          // Check if we're not already on HomePage to avoid navigation loops
-          // This listener is mainly for initial app state, not explicit sign-ins
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainNavigation(initialIndex: 0)),
+            (route) => false,
+          );
         }
       }
     });
@@ -60,13 +62,12 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
           
-          // Navigate to home page
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
               builder: (context) => const MainNavigation(initialIndex: 0),
             ),
-            (route) => false, // Remove all previous routes
+            (route) => false,
           );
         }
       } else {

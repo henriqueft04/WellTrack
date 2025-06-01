@@ -32,7 +32,12 @@ class _HomePageState extends State<HomePage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
-        // Show confirmation dialog before exiting app
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          return;
+        }
+        
+        // Show confirmation dialog before exiting app only if this is the root
         final shouldExit = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(

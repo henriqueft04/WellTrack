@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:welltrack/components/bottom_nav_bar.dart';
 import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/pages/journal_page.dart';
@@ -28,12 +27,6 @@ class _MainNavigationState extends State<MainNavigation> {
     _selectedIndex = widget.initialIndex;
   }
 
-  void _navigateBottomBar(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   List<Widget> get _pages => [
     const HomePage(),
     const JournalPage(),
@@ -44,38 +37,77 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        // Show confirmation dialog before exiting app only on main page
-        if (_selectedIndex == 0) {
-          final shouldExit = await showDialog<bool>(
-            context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Exit App'),
-              content: const Text('Are you sure you want to exit the app?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text('Exit'),
-                ),
-              ],
-            ),
-          );
-          if (shouldExit ?? false) {
-            SystemNavigator.pop();
-          }
-        }
-      },
-      child: Scaffold(
-        body: _pages[_selectedIndex],
-        bottomNavigationBar: MyBottomNavBar(
-          onTabChange: _navigateBottomBar,
+    return MainPageWrapper(
+      currentIndex: _selectedIndex,
+      child: _pages[_selectedIndex],
+    );
+  }
+}
+
+/// Wrapper for main pages that handles navigation and navbar
+class MainPageWrapper extends StatelessWidget {
+  final Widget child;
+  final int currentIndex;
+
+  const MainPageWrapper({
+    super.key,
+    required this.currentIndex,
+    required this.child,
+  });
+
+  void _navigateBottomBar(BuildContext context, int index) {
+    if (index != currentIndex) {
+      // Create proper navigation history
+      Widget targetPage;
+      switch (index) {
+        case 0:
+          targetPage = const HomePage();
+          break;
+        case 1:
+          targetPage = const JournalPage();
+          break;
+        case 2:
+          targetPage = const CalendarPage();
+          break;
+        case 3:
+          targetPage = const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5);
+          break;
+        case 4:
+          targetPage = const ProfilePage();
+          break;
+        default:
+          targetPage = const HomePage();
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainPageWrapper(
+            currentIndex: index,
+            child: targetPage,
+          ),
         ),
+      );
+    }
+  }
+
+  // Helper method to determine current index from child type
+  int _getCurrentIndexFromChild() {
+    if (child is HomePage) return 0;
+    if (child is JournalPage) return 1;
+    if (child is CalendarPage) return 2;
+    if (child is StatsPage) return 3;
+    if (child is ProfilePage) return 4;
+    return currentIndex; // fallback to provided index
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: MyBottomNavBar(
+        currentIndex: _getCurrentIndexFromChild(),
+        onTabChange: (index) => _navigateBottomBar(context, index),
       ),
     );
   }
@@ -96,9 +128,11 @@ class NonMainPageWrapper extends StatelessWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: MyBottomNavBar(
+        currentIndex: null, // No current index for secondary pages
         onTabChange: (index) {
-          // Navigate back to main navigation with selected index
-          Navigator.of(context).pushReplacement(
+          // When user taps navbar from a non-main page, navigate to main navigation
+          // This preserves the back stack so Android back button still works
+          Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => MainNavigation(initialIndex: index),
             ),

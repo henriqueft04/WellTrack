@@ -18,6 +18,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         pageTitle: 'Edit Profile',
         showLogo: false,
         isMainPage: false,
+        showBackButton: true,
         content: const Column(
           children: [
             UserInfo(),

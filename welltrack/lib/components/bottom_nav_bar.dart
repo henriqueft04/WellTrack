@@ -1,21 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:circle_nav_bar/circle_nav_bar.dart';
 
+
 class MyBottomNavBar extends StatefulWidget {
   final void Function(int)? onTabChange;
-  const MyBottomNavBar({super.key, required this.onTabChange});
+  final int? currentIndex;
+  
+  const MyBottomNavBar({
+    super.key, 
+    required this.onTabChange,
+    this.currentIndex,
+  });
 
   @override
   State<MyBottomNavBar> createState() => _MyBottomNavBarState();
 }
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
-  int _selectedIndex = 0;
+  int _getActiveIndex() {
+    if (widget.currentIndex != null) {
+      return widget.currentIndex!;
+    }
+
+    final modalRoute = ModalRoute.of(context);
+    if (modalRoute?.settings.name != null) {
+      final routeName = modalRoute!.settings.name!;
+      if (routeName.contains('HomePage')) return 0;
+      if (routeName.contains('JournalPage')) return 1;
+      if (routeName.contains('CalendarPage')) return 2;
+      if (routeName.contains('StatsPage')) return 3;
+      if (routeName.contains('ProfilePage')) return 4;
+    }
+
+    context.visitAncestorElements((element) {
+      final elementWidget = element.widget;
+      final elementType = elementWidget.runtimeType.toString();
+      
+      if (elementType.contains('HomePage')) return false;
+      if (elementType.contains('JournalPage')) return false;
+      if (elementType.contains('CalendarPage')) return false;
+      if (elementType.contains('StatsPage')) return false;
+      if (elementType.contains('ProfilePage')) return false;
+      
+      return true;
+    });
+
+    return 0;
+  }
 
   @override
   Widget build(BuildContext context) {
     const activeColor = Colors.white;
-    final inactiveColor = Colors.white.withOpacity(0.5);
+    final inactiveColor = Colors.white.withValues(alpha: 0.5);
+    final activeIndex = _getActiveIndex();
 
     return CircleNavBar(
       activeIcons: const [
@@ -35,9 +72,8 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
       color: const Color(0xFF9CD0FF),
       height: 60,
       circleWidth: 55,
-      activeIndex: _selectedIndex,
+      activeIndex: activeIndex,
       onTap: (index) {
-        setState(() => _selectedIndex = index);
         widget.onTabChange?.call(index);
       },
     );

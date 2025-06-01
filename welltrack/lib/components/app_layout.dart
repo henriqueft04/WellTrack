@@ -8,6 +8,7 @@ class AppLayout extends StatelessWidget {
   final bool showLogo;
   final bool isMainPage;
   final Widget? bottomNavigationBar;
+  final bool showBackButton;
 
   const AppLayout({
     super.key,
@@ -16,6 +17,7 @@ class AppLayout extends StatelessWidget {
     this.showLogo = true,
     this.isMainPage = false,
     this.bottomNavigationBar,
+    this.showBackButton = false,
   });
 
   @override
@@ -35,17 +37,31 @@ class AppLayout extends StatelessWidget {
                 ),
               ),
             
-            // Page title section
+            // Page title section with optional back button
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               width: double.infinity,
-              child: Text(
-                pageTitle,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.left,
+              child: Row(
+                children: [
+                  if (showBackButton)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).pop(),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  if (showBackButton) const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      pageTitle,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: showBackButton ? TextAlign.left : (showLogo ? TextAlign.center : TextAlign.left),
+                    ),
+                  ),
+                ],
               ),
             ),
             
@@ -60,6 +76,8 @@ class AppLayout extends StatelessWidget {
   }
 }
 
+/// Wrapper component that ensures navbar is present on all pages
+/// and provides navigation functionality
 class PageWrapper extends StatelessWidget {
   final Widget child;
   final int? currentIndex;

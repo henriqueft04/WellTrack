@@ -12,6 +12,7 @@ class MentalStatePage extends StatelessWidget {
         pageTitle: 'Mental Health',
         showLogo: false,
         isMainPage: false,
+        showBackButton: true,
         content: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -68,12 +69,12 @@ class MentalStatePage extends StatelessWidget {
         height: 110,
         margin: const EdgeInsets.symmetric(horizontal: 0),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color, width: 2),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.08),
+              color: color.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -144,6 +145,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
         pageTitle: 'State of Mind',
         showLogo: false,
         isMainPage: false,
+        showBackButton: true,
         content: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -169,7 +171,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                   height: 200,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.lightBlueAccent.withOpacity(0.1),
+                    color: Colors.lightBlueAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.lightBlueAccent, width: 2),
                   ),
@@ -248,7 +250,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                           }
                         });
                       },
-                      selectedColor: Colors.lightBlue.withOpacity(0.3),
+                      selectedColor: Colors.lightBlue.withValues(alpha: 0.3),
                       checkmarkColor: Colors.lightBlue,
                     );
                   }).toList(),
@@ -279,7 +281,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                           }
                         });
                       },
-                      selectedColor: Colors.pink.withOpacity(0.3),
+                      selectedColor: Colors.pink.withValues(alpha: 0.3),
                       checkmarkColor: Colors.pink,
                     );
                   }).toList(),
@@ -346,6 +348,7 @@ class JournalSelectionPage extends StatelessWidget {
         pageTitle: 'journal',
         showLogo: false,
         isMainPage: false,
+        showBackButton: true,
         content: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -411,12 +414,12 @@ class JournalSelectionPage extends StatelessWidget {
         height: 110,
         margin: const EdgeInsets.symmetric(horizontal: 0),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color, width: 2),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.08),
+              color: color.withValues(alpha: 0.08),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -473,7 +476,10 @@ class _InsertThoughtsPageState extends State<InsertThoughtsPage> with SingleTick
     return NonMainPageWrapper(
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           backgroundColor: Colors.transparent,
           elevation: 0,
           title: const Text('journal', style: TextStyle(color: Colors.black)),
@@ -604,6 +610,7 @@ class SeeMyThoughtsPage extends StatelessWidget {
         pageTitle: 'journal',
         showLogo: false,
         isMainPage: false,
+        showBackButton: true,
         content: ListView(
           padding: const EdgeInsets.all(24.0),
           children: [
@@ -696,7 +703,7 @@ class _ChatBubble extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 2,
             offset: const Offset(0, 4),
           ),
