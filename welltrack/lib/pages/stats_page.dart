@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
+import 'package:welltrack/pages/steps_goal_page.dart';
+import 'package:welltrack/pages/calories_goal_page.dart';
+import 'package:welltrack/pages/runs_goal_page.dart';
 
 class StatsPage extends StatefulWidget {
   final double steps;
@@ -44,32 +47,56 @@ class _StatsPageState extends State<StatsPage> {
           children: [
             const SizedBox(height: 24),
             // Steps Card
-            _StatCard(
-              value: widget.steps,
-              maxValue: maxSteps,
-              label: 'steps',
-              color: const Color(0xFFFFB3B3),
-              percentColor: Colors.black,
-              barColor: const Color(0xFFFFB3B3),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const StepsGoalPage()),
+                );
+              },
+              child: _StatCard(
+                value: widget.steps,
+                maxValue: maxSteps,
+                label: 'steps',
+                color: const Color(0xFFFFB3B3),
+                percentColor: Colors.black,
+                barColor: const Color(0xFFFFB3B3),
+              ),
             ),
             // Calories Card
-            _StatCard(
-              value: widget.calories,
-              maxValue: maxCalories,
-              label: 'calories',
-              color: const Color(0xFFB3B3FF),
-              percentColor: Colors.black,
-              barColor: const Color(0xFFB3B3FF),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CaloriesGoalPage()),
+                );
+              },
+              child: _StatCard(
+                value: widget.calories,
+                maxValue: maxCalories,
+                label: 'calories',
+                color: const Color(0xFFB3B3FF),
+                percentColor: Colors.black,
+                barColor: const Color(0xFFB3B3FF),
+              ),
             ),
             // Distance Card
-            _StatCard(
-              value: widget.distance,
-              maxValue: maxDistance,
-              label: 'kilometers',
-              color: const Color(0xFFB3FFB3),
-              percentColor: Colors.black,
-              barColor: const Color(0xFFB3FFB3),
-              isDistance: true,
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RunsGoalPage()),
+                );
+              },
+              child: _StatCard(
+                value: widget.distance,
+                maxValue: maxDistance,
+                label: 'kilometers',
+                color: const Color(0xFFB3FFB3),
+                percentColor: Colors.black,
+                barColor: const Color(0xFFB3FFB3),
+                isDistance: true,
+              ),
             ),
             // Running Goal Card
             const SizedBox(height: 16),

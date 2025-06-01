@@ -33,6 +33,11 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  // Get user name
+  String? getUserName() {
+    return _userProfile?['name'];
+  }
+
   // Update user name
   Future<bool> updateUserName(String name) async {
     try {

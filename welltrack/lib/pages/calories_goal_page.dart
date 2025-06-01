@@ -67,7 +67,7 @@ class _CaloriesGoalPageState extends State<CaloriesGoalPage> {
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 16,
                       activeTrackColor: Color(0xFFB3B3FF),
-                      inactiveTrackColor: Color(0xFFB3B3FF).withOpacity(0.3),
+                      inactiveTrackColor: Color(0xFFB3B3FF).withValues(alpha: 0.3),
                       thumbColor: Colors.white,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
                     ),
