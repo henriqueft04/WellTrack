@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> {
       _isLoading = true;
     });
     final status = await Permission.activityRecognition.request();
+    debugPrint('Permission status: $status');
     setState(() {
       _ispermissionGranted = status == PermissionStatus.granted;
     });
@@ -91,17 +92,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _setupMovementDetection() async {
-    try{
-    _pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
-      (PedestrianStatus event) {
-        _handleMovement(event.status);
-      },
-      onError: (error) {
-        print("Error in pedometer stream: $error");
-      },
-    );
-
-    }catch (e){
+    try {
+      _pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
+        (PedestrianStatus event) {
+          _handleMovement(event.status);
+        },
+        onError: (error) {
+          print("Error in pedometer stream: $error");
+        },
+      );
+    } catch (e) {
       print("Error setting up movement detection: $e");
     }
   }
@@ -141,9 +141,9 @@ class _HomePageState extends State<HomePage> {
   void _startStepCounting() {
     _stepTimer?.cancel();
 
-    int baseInterval = (600/ _walkingPlace).round();
+    int baseInterval = (600 / _walkingPlace).round();
 
-    _stepTimer = Timer.periodic(Duration(milliseconds: baseInterval), (timer){
+    _stepTimer = Timer.periodic(Duration(milliseconds: baseInterval), (timer) {
       if (!_isWalking) {
         timer.cancel();
         return;
@@ -152,14 +152,14 @@ class _HomePageState extends State<HomePage> {
 
       if (_random.nextDouble() < StepChance) {
         setState(() {
-        _steps++;
-        _todaySteps++;
-        _consecutiveSteps++;
+          _steps++;
+          _todaySteps++;
+          _consecutiveSteps++;
 
-        _calculateMetrics();
+          _calculateMetrics();
         });
         _saveSteps();
-      } 
+      }
 
       if (_consecutiveSteps >= 0 && _consecutiveSteps % 20 == 0) {
         double adjustment = 0.95 + (_random.nextDouble() * 0.1);
@@ -167,41 +167,42 @@ class _HomePageState extends State<HomePage> {
 
         _startStepCounting();
       }
-      });
+    });
 
-      _startSessionPatterns();
+    _startSessionPatterns();
   }
 
   double _calculateStepProbability() {
     double baseProbability = 0.92;
 
-    if(_consecutiveSteps < 5){
+    if (_consecutiveSteps < 5) {
       baseProbability += 0.8;
     }
 
     double randomVariation = 0.95 + (_random.nextDouble() * 0.1);
     return (baseProbability * randomVariation).clamp(0.0, 1.0);
-  }  
+  }
 
   void _startSessionPatterns() {
-    _sessionTimer = Timer.periodic(Duration(seconds: 15 + _random.nextInt(30)),
-    (timer){
-      if (!_isWalking) {
-        timer.cancel();
-        return;
-      }
+    _sessionTimer = Timer.periodic(
+      Duration(seconds: 15 + _random.nextInt(30)),
+      (timer) {
+        if (!_isWalking) {
+          timer.cancel();
+          return;
+        }
 
-      if(_random.nextDouble() < 0.2) {
-        _stepTimer?.cancel();
+        if (_random.nextDouble() < 0.2) {
+          _stepTimer?.cancel();
 
-        Timer(Duration(seconds: 1 + _random.nextInt(3)), () {
-          if (_isWalking) {
-            _startStepCounting();
-          }
-        });
-      }
-
-    });
+          Timer(Duration(seconds: 1 + _random.nextInt(3)), () {
+            if (_isWalking) {
+              _startStepCounting();
+            }
+          });
+        }
+      },
+    );
   }
 
   // calculate metrics like calories and distance
@@ -210,7 +211,7 @@ class _HomePageState extends State<HomePage> {
     _distance = (_steps * 0.762) / 1000;
   }
 
-  String _getDateKey(){
+  String _getDateKey() {
     return DateFormat('yyyy-MM-dd').format(DateTime.now());
   }
 
@@ -219,7 +220,7 @@ class _HomePageState extends State<HomePage> {
     final today = _getDateKey();
     final _lastDate = prefs.getString('lastDate') ?? '';
 
-    if (_lastDate == today){
+    if (_lastDate == today) {
       setState(() {
         _todaySteps = prefs.getInt('steps_$today') ?? 0;
         _steps = _todaySteps;
@@ -235,7 +236,7 @@ class _HomePageState extends State<HomePage> {
     _calculateMetrics();
   }
 
-  Future<void>  _saveSteps() async {
+  Future<void> _saveSteps() async {
     final prefs = await SharedPreferences.getInstance();
     final today = _getDateKey();
 
@@ -265,7 +266,6 @@ class _HomePageState extends State<HomePage> {
         'steps': steps,
         'day': DateFormat('E').format(date),
       });
-      
     }
     setState(() {
       _weeklyData = weekData;
@@ -273,29 +273,31 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showGoalDialog() {
-    showDialog(context: context, builder: (context){
-      final controller = TextEditingController(text: _dailyGoal.toString());
-      return AlertDialog(
-        title: const Text('Set Daily Step Goal'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Daily Step Goal',
-            hintText: 'Enter your daily step goal',
+    showDialog(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController(text: _dailyGoal.toString());
+        return AlertDialog(
+          title: const Text('Set Daily Step Goal'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Daily Step Goal',
+              hintText: 'Enter your daily step goal',
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newGoal = int.tryParse(controller.text) ?? 10000;
-                
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newGoal = int.tryParse(controller.text) ?? 10000;
+
                 setState(() {
                   _dailyGoal = newGoal;
                 });
@@ -303,16 +305,14 @@ class _HomePageState extends State<HomePage> {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setInt('dailyGoal', newGoal);
                 Navigator.pop(context);
-                
-            },
-            child: const Text('Set Goal'),
-          ),
-        ],
-      );
-    });
-  
+              },
+              child: const Text('Set Goal'),
+            ),
+          ],
+        );
+      },
+    );
   }
-
 
   int _selectedIndex = 0;
   double _moodValue = 1.0; // 0 = unpleasant, 1 = neutral, 2 = pleasant
@@ -478,7 +478,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Cards for Mental State and Stats
+                // Card for Mental State
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Column(
@@ -521,110 +521,102 @@ class _HomePageState extends State<HomePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => const StatsPage(
-                                    steps: 12212.0,
-                                    calories: 210.0,
-                                    distance: 2.5,
-                                  ),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: double.infinity,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 187, 186, 186),
-                            borderRadius: BorderRadius.circular(12),
+                      //const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+
+                // Bottom Stats Row
+                Container(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Step Counter',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (_ispermissionGranted)
+                        IconButton(
+                          icon: const Icon(Icons.settings),
+                          onPressed: _showGoalDialog,
+                        ),
+                    ],
+                  ),
+                ),
+
+                if (_isLoading)
+                  const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                    ),
+                  )
+                else if (!_ispermissionGranted)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.directions_walk,
+                        size: 100,
+                        color: Colors.blue[300],
+                      ),
+                      Text(
+                        'Permission Required',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          'Please grant permission to access your step count.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[700],
                           ),
-                          child: Row(
-                            children: const [
-                              SizedBox(width: 16),
-                              Icon(
-                                Icons.pie_chart,
-                                size: 40,
-                                color: Colors.white,
-                              ),
-                              SizedBox(width: 16),
-                              Text(
-                                'stats',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                      ElevatedButton(
+                        onPressed: _checkPermissions,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15,
+                          ),
+                        ),
+                        child: const Text(
+                          'Grant Permission',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      TextButton(
+                        onPressed: () async {
+                          await openAppSettings();
+                        },
+                        child: Text(
+                          "Open Settings",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blue[700],
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 24),
-                // Bottom Stats Row
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: Colors.grey.shade300),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Column(
-                        children: const [
-                          Icon(
-                            Icons.location_on,
-                            size: 28,
-                            color: Colors.black,
-                          ),
-                          SizedBox(height: 4),
-                          Text('327'),
-                        ],
-                      ),
-                      Column(
-                        children: const [
-                          Icon(
-                            Icons.local_fire_department,
-                            size: 28,
-                            color: Colors.black,
-                          ),
-                          SizedBox(height: 4),
-                          Text('327'),
-                        ],
-                      ),
-                      Column(
-                        children: const [
-                          Icon(
-                            Icons.directions_run,
-                            size: 28,
-                            color: Colors.black,
-                          ),
-                          SizedBox(height: 4),
-                          Text('5.3 km'),
-                        ],
-                      ),
-                      Column(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.settings),
-                            onPressed: _showGoalDialog,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),
