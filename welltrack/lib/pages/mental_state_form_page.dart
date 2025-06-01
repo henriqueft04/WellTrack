@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
+import 'package:welltrack/core/injection.dart';
+import 'package:welltrack/services/mental_state_service.dart';
 
 class MentalStateFormPage extends StatefulWidget {
   final int? originIndex;
@@ -20,6 +22,57 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
   double _moodValue = 1.0; // 0 = unpleasant, 1 = neutral, 2 = pleasant
   final Set<String> _selectedEmotions = {};
   final Set<String> _selectedImpacts = {};
+
+  // Dependency injection - get service from DI container
+  late final MentalStateService _mentalStateService;
+
+  @override
+  void initState() {
+    super.initState();
+    _mentalStateService = locate<MentalStateService>();
+    _loadExistingData();
+  }
+
+  Future<void> _loadExistingData() async {
+    final existingData = await _mentalStateService.getMentalStateForDate(widget.selectedDate);
+    if (existingData != null) {
+      setState(() {
+        _moodValue = existingData.moodValue;
+        _selectedEmotions.addAll(existingData.emotions);
+        _selectedImpacts.addAll(existingData.impacts);
+      });
+    }
+  }
+
+  Future<void> _saveMentalState() async {
+    try {
+      await _mentalStateService.saveMentalState(
+        date: widget.selectedDate,
+        moodValue: _moodValue,
+        emotions: _selectedEmotions,
+        impacts: _selectedImpacts,
+      );
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mental state saved successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error saving data: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   final List<String> _emotions = [
     'Happy',
@@ -206,10 +259,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Save the mental state data
-                      Navigator.pop(context);
-                    },
+                    onPressed: _saveMentalState,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF9CD0FF),
                       foregroundColor: Colors.white,

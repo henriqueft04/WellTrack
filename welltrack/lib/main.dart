@@ -2,11 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
+import 'package:welltrack/core/injection.dart';
+import 'package:welltrack/services/navigation_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
-
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize dependency injection
+  configureDependencies();
 
   await Supabase.initialize(
     url: 'https://kaekvbykswfrevmsaslt.supabase.co',
@@ -27,6 +31,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'WellTrack',
         debugShowCheckedModeBanner: false,
+        navigatorKey: locate<NavigationService>().navigatorKey, // DI for navigation
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
