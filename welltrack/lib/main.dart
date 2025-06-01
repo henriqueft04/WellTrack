@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/navigation_service.dart';
+import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -26,8 +28,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => UserProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => MentalStateViewModel()),
+      ],
       child: MaterialApp(
         title: 'WellTrack',
         debugShowCheckedModeBanner: false,
@@ -36,7 +41,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
         ),
-        home: const LoginPage(),
+        home: const HomePage(),
       ),
     );
   }

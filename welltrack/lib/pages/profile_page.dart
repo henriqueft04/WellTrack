@@ -27,7 +27,6 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return AppLayout(
-      pageTitle: "My Profile",
       showLogo: true,
       isMainPage: true,
       content: SingleChildScrollView(

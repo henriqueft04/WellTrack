@@ -52,7 +52,6 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return AppLayout(
-      pageTitle: "Calendar",
       showLogo: true,
       isMainPage: true,
       content: Padding(

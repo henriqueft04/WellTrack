@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:circle_nav_bar/circle_nav_bar.dart';
-
 
 class MyBottomNavBar extends StatefulWidget {
   final void Function(int)? onTabChange;
@@ -18,64 +16,42 @@ class MyBottomNavBar extends StatefulWidget {
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
   int _getActiveIndex() {
-    if (widget.currentIndex != null) {
-      return widget.currentIndex!;
-    }
-
-    final modalRoute = ModalRoute.of(context);
-    if (modalRoute?.settings.name != null) {
-      final routeName = modalRoute!.settings.name!;
-      if (routeName.contains('HomePage')) return 0;
-      if (routeName.contains('JournalPage')) return 1;
-      if (routeName.contains('CalendarPage')) return 2;
-      if (routeName.contains('StatsPage')) return 3;
-      if (routeName.contains('ProfilePage')) return 4;
-    }
-
-    context.visitAncestorElements((element) {
-      final elementWidget = element.widget;
-      final elementType = elementWidget.runtimeType.toString();
-      
-      if (elementType.contains('HomePage')) return false;
-      if (elementType.contains('JournalPage')) return false;
-      if (elementType.contains('CalendarPage')) return false;
-      if (elementType.contains('StatsPage')) return false;
-      if (elementType.contains('ProfilePage')) return false;
-      
-      return true;
-    });
-
-    return 0;
+    return widget.currentIndex ?? 0;
   }
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = Colors.white;
-    final inactiveColor = Colors.white.withValues(alpha: 0.5);
     final activeIndex = _getActiveIndex();
 
-    return CircleNavBar(
-      activeIcons: const [
-        Icon(Icons.home, color: activeColor),
-        Icon(Icons.book, color: activeColor),
-        Icon(Icons.calendar_today, color: activeColor),
-        Icon(Icons.fitness_center, color: activeColor),
-        Icon(Icons.person, color: activeColor),
+    return BottomNavigationBar(
+      currentIndex: activeIndex,
+      onTap: widget.onTabChange,
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: const Color(0xFF9CD0FF),
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.white.withOpacity(0.5),
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home),
+          label: 'Home',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.book),
+          label: 'Journal',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_today),
+          label: 'Calendar',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.fitness_center),
+          label: 'Stats',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person),
+          label: 'Profile',
+        ),
       ],
-      inactiveIcons: [
-        Icon(Icons.home, color: inactiveColor),
-        Icon(Icons.book, color: inactiveColor),
-        Icon(Icons.calendar_today, color: inactiveColor),
-        Icon(Icons.fitness_center, color: inactiveColor),
-        Icon(Icons.person, color: inactiveColor),
-      ],
-      color: const Color(0xFF9CD0FF),
-      height: 60,
-      circleWidth: 55,
-      activeIndex: activeIndex,
-      onTap: (index) {
-        widget.onTabChange?.call(index);
-      },
     );
   }
 }

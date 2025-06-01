@@ -5,11 +5,8 @@ import 'package:welltrack/services/navigation_service.dart';
 final getIt = GetIt.instance;
 
 void configureDependencies() {
-  // Register repositories
-  getIt.registerLazySingleton<MentalStateRepository>(() => LocalMentalStateRepository());
-  
   // Register services
-  getIt.registerLazySingleton<MentalStateService>(() => MentalStateService(getIt()));
+  getIt.registerLazySingleton<MentalStateService>(() => MentalStateService());
   getIt.registerLazySingleton<NavigationService>(() => NavigationService());
 }
 
