@@ -7,7 +7,6 @@ import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/utils/mood_utils.dart';
 import 'dart:ui' as ui;
 import 'dart:typed_data';
-import 'package:welltrack/pages/debug_proximity.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -59,29 +58,34 @@ class _MapPageState extends State<MapPage> {
   }
 
   // Helper method to create marker image from icon
-  Future<Uint8List> _createMarkerImageFromIcon(IconData iconData, Color color) async {
+  Future<Uint8List> _createMarkerImageFromIcon(
+    IconData iconData,
+    Color color,
+  ) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    
+
     // Create a circular background
-    final paint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.fill;
-    
-    final borderPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+    final paint =
+        Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+
+    final borderPaint =
+        Paint()
+          ..color = color
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
 
     const size = 25.0;
     const radius = size / 2;
-    
+
     // Draw white circle background
     canvas.drawCircle(const Offset(radius, radius), radius - 1, paint);
-    
+
     // Draw colored border
     canvas.drawCircle(const Offset(radius, radius), radius - 1, borderPaint);
-    
+
     // Draw the icon
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
     textPainter.text = TextSpan(
@@ -95,16 +99,13 @@ class _MapPageState extends State<MapPage> {
     textPainter.layout();
     textPainter.paint(
       canvas,
-      Offset(
-        (size - textPainter.width) / 2,
-        (size - textPainter.height) / 2,
-      ),
+      Offset((size - textPainter.width) / 2, (size - textPainter.height) / 2),
     );
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(size.toInt(), size.toInt());
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    
+
     return byteData!.buffer.asUint8List();
   }
 
@@ -119,48 +120,24 @@ class _MapPageState extends State<MapPage> {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Debug Button Row
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DebugProximityPage(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.bug_report, size: 18),
-                        label: const Text('Debug'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                
                 // Google Maps Section
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, right: 16),
+                  child: _buildStatusCard(proximityProvider),
+                ),
                 _buildMapSection(proximityProvider, userProvider),
-                
+
                 // Existing Components
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.only(left: 16, right: 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Status Card
-                      _buildStatusCard(proximityProvider),
-                      const SizedBox(height: 16),
-                      
                       // Proximity Radius Control
                       _buildRadiusControl(proximityProvider),
                       const SizedBox(height: 16),
-                      
+
                       // Nearby Users Section
                       _buildNearbyUsersSection(proximityProvider),
                     ],
@@ -174,7 +151,10 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  Widget _buildMapSection(ProximityProvider provider, UserProvider userProvider) {
+  Widget _buildMapSection(
+    ProximityProvider provider,
+    UserProvider userProvider,
+  ) {
     if (!provider.isLocationEnabled || provider.currentPosition == null) {
       return Container(
         height: 300,
@@ -187,27 +167,17 @@ class _MapPageState extends State<MapPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.location_off,
-                size: 64,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.location_off, size: 64, color: Colors.grey[400]),
               const SizedBox(height: 16),
               Text(
                 'Location services not available',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               if (provider.error != null) ...[
                 const SizedBox(height: 8),
                 Text(
                   provider.error!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.red[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.red[600]),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -266,7 +236,10 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
-  void _updateMapMarkers(ProximityProvider provider, UserProvider userProvider) async {
+  void _updateMapMarkers(
+    ProximityProvider provider,
+    UserProvider userProvider,
+  ) async {
     final currentPos = provider.currentPosition;
     if (currentPos == null) return;
 
@@ -288,7 +261,7 @@ class _MapPageState extends State<MapPage> {
     // Add marker for current user's location
     final currentUserMentalState = userProvider.userProfile?['mental_state'];
     final currentUserMarker = await _createMoodMarker(currentUserMentalState);
-    
+
     newMarkers.add(
       Marker(
         markerId: const MarkerId('current_user'),
@@ -296,7 +269,8 @@ class _MapPageState extends State<MapPage> {
         icon: currentUserMarker,
         infoWindow: InfoWindow(
           title: 'You (${userProvider.userProfile?['name'] ?? 'Me'})',
-          snippet: 'Current mood: ${MoodUtils.getMoodDisplayName(currentUserMentalState)}',
+          snippet:
+              'Current mood: ${MoodUtils.getMoodDisplayName(currentUserMentalState)}',
         ),
       ),
     );
@@ -305,22 +279,20 @@ class _MapPageState extends State<MapPage> {
     for (int i = 0; i < provider.nearbyUsers.length; i++) {
       final user = provider.nearbyUsers[i];
       final distance = user['distance_meters']?.toDouble() ?? 0.0;
-      
+
       // Create custom mood marker
       final markerIcon = await _createMoodMarker(user['mental_state']);
-      
+
       newMarkers.add(
         Marker(
           markerId: MarkerId('user_${user['user_id']}'),
-          position: LatLng(
-            user['latitude'],
-            user['longitude'],
-          ),
+          position: LatLng(user['latitude'], user['longitude']),
           icon: markerIcon,
           infoWindow: InfoWindow(
             title: user['name'] ?? 'Unknown User',
-            snippet: 'Distance: ${provider.formatDistance(distance)}\n'
-                    'Mood: ${MoodUtils.getMoodDisplayName(user['mental_state'])}',
+            snippet:
+                'Distance: ${provider.formatDistance(distance)}\n'
+                'Mood: ${MoodUtils.getMoodDisplayName(user['mental_state'])}',
           ),
           onTap: () => _showUserDetails(context, user, provider),
         ),
@@ -328,7 +300,8 @@ class _MapPageState extends State<MapPage> {
     }
 
     // Only update if markers or circles actually changed
-    if (!_markersEqual(newMarkers, _markers) || !_circlesEqual(newCircles, _circles)) {
+    if (!_markersEqual(newMarkers, _markers) ||
+        !_circlesEqual(newCircles, _circles)) {
       if (mounted) {
         setState(() {
           _markers = newMarkers;
@@ -351,7 +324,8 @@ class _MapPageState extends State<MapPage> {
   bool _circlesEqual(Set<Circle> set1, Set<Circle> set2) {
     if (set1.length != set2.length) return false;
     for (final circle in set1) {
-      final matching = set2.where((c) => c.circleId == circle.circleId).firstOrNull;
+      final matching =
+          set2.where((c) => c.circleId == circle.circleId).firstOrNull;
       if (matching == null || matching.radius != circle.radius) return false;
     }
     return true;
@@ -359,12 +333,17 @@ class _MapPageState extends State<MapPage> {
 
   // Move camera to show all markers
   void _fitMarkersInView(ProximityProvider provider) {
-    if (_mapController == null || provider.nearbyUsers.isEmpty || provider.currentPosition == null) {
+    if (_mapController == null ||
+        provider.nearbyUsers.isEmpty ||
+        provider.currentPosition == null) {
       return;
     }
 
     List<LatLng> points = [
-      LatLng(provider.currentPosition!.latitude, provider.currentPosition!.longitude),
+      LatLng(
+        provider.currentPosition!.latitude,
+        provider.currentPosition!.longitude,
+      ),
     ];
 
     for (var user in provider.nearbyUsers) {
@@ -380,10 +359,18 @@ class _MapPageState extends State<MapPage> {
     }
 
     // Calculate bounds
-    double minLat = points.map((p) => p.latitude).reduce((a, b) => a < b ? a : b);
-    double maxLat = points.map((p) => p.latitude).reduce((a, b) => a > b ? a : b);
-    double minLng = points.map((p) => p.longitude).reduce((a, b) => a < b ? a : b);
-    double maxLng = points.map((p) => p.longitude).reduce((a, b) => a > b ? a : b);
+    double minLat = points
+        .map((p) => p.latitude)
+        .reduce((a, b) => a < b ? a : b);
+    double maxLat = points
+        .map((p) => p.latitude)
+        .reduce((a, b) => a > b ? a : b);
+    double minLng = points
+        .map((p) => p.longitude)
+        .reduce((a, b) => a < b ? a : b);
+    double maxLng = points
+        .map((p) => p.longitude)
+        .reduce((a, b) => a > b ? a : b);
 
     _mapController!.animateCamera(
       CameraUpdate.newLatLngBounds(
@@ -398,15 +385,17 @@ class _MapPageState extends State<MapPage> {
 
   Widget _buildStatusCard(ProximityProvider provider) {
     return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Row(
               children: [
                 Icon(
-                  provider.isLocationEnabled ? Icons.location_on : Icons.location_off,
+                  provider.isLocationEnabled
+                      ? Icons.location_on
+                      : Icons.location_off,
                   color: provider.isLocationEnabled ? Colors.green : Colors.red,
                 ),
                 const SizedBox(width: 8),
@@ -417,27 +406,31 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              provider.isLocationEnabled 
-                ? 'Location services enabled' 
-                : 'Location services disabled',
-              style: Theme.of(context).textTheme.bodyMedium,
+            Row(
+              children: [
+                Text(
+                  provider.isLocationEnabled
+                      ? 'Location services enabled'
+                      : 'Location services disabled',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (provider.error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(provider.error!, style: TextStyle(color: Colors.red)),
+                ],
+                if (provider.currentPosition != null) ...[
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, right: 16),
+                    child: Text(
+                      'Lat: ${provider.currentPosition!.latitude.toStringAsFixed(6)}\n'
+                      'Lng: ${provider.currentPosition!.longitude.toStringAsFixed(6)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                ],
+              ],
             ),
-            if (provider.error != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                provider.error!,
-                style: TextStyle(color: Colors.red),
-              ),
-            ],
-            if (provider.currentPosition != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Lat: ${provider.currentPosition!.latitude.toStringAsFixed(6)}\n'
-                'Lng: ${provider.currentPosition!.longitude.toStringAsFixed(6)}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
           ],
         ),
       ),
@@ -463,25 +456,52 @@ class _MapPageState extends State<MapPage> {
                   icon: const Icon(Icons.center_focus_strong, size: 18),
                   label: const Text('Center Map'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             Slider(
-              value: provider.proximityRadius,
+              value: provider.proximityRadius.isInfinite ? 10000.0 : provider.proximityRadius,
               min: 100.0,
-              max: 5000.0,
-              divisions: 49,
+              max: 10000.0,
+              divisions: 99,
               label: provider.formatDistance(provider.proximityRadius),
               onChanged: (value) {
                 provider.setProximityRadius(value);
               },
             ),
-            Text(
-              'Current radius: ${provider.formatDistance(provider.proximityRadius)}',
-              style: Theme.of(context).textTheme.bodyMedium,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Current radius: ${provider.formatDistance(provider.proximityRadius)}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                IconButton(
+                  alignment: Alignment.centerRight,
+                  icon: const Icon(Icons.all_inclusive),
+                  onPressed: () async {
+                    provider.setProximityRadius(double.infinity);
+                    _fitMarkersInView(provider);
+                  },
+                  style: ButtonStyle(
+                    shape: WidgetStateProperty.all(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(
+                          color: Colors.grey[300]!,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -504,20 +524,22 @@ class _MapPageState extends State<MapPage> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 IconButton(
-                  icon: provider.isLoading 
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh),
-                  onPressed: provider.isLoading 
-                    ? null 
-                    : () async {
-                        await provider.refreshNearbyUsers();
-                        // Center map after refresh
-                        _fitMarkersInView(provider);
-                      },
+                  icon:
+                      provider.isLoading
+                          ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                          : const Icon(Icons.refresh),
+                  onPressed:
+                      provider.isLoading
+                          ? null
+                          : () async {
+                            await provider.refreshNearbyUsers();
+                            // Center map after refresh
+                            _fitMarkersInView(provider);
+                          },
                 ),
               ],
             ),
@@ -534,16 +556,16 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(height: 16),
                     Text(
                       'No users found nearby',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Try increasing the proximity radius or check back later',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[500],
-                      ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: Colors.grey[500]),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -567,7 +589,7 @@ class _MapPageState extends State<MapPage> {
 
   Widget _buildUserTile(Map<String, dynamic> user, ProximityProvider provider) {
     final distance = user['distance_meters']?.toDouble() ?? 0.0;
-    
+
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: Colors.blue[100],
@@ -589,10 +611,7 @@ class _MapPageState extends State<MapPage> {
           Text('Distance: ${provider.formatDistance(distance)}'),
           Text(
             'Last seen: ${_formatLastSeen(user['updated_at'])}',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           ),
           if (user['mental_state'] != null)
             Text(
@@ -608,11 +627,7 @@ class _MapPageState extends State<MapPage> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.location_on,
-            color: _getDistanceColor(distance),
-            size: 20,
-          ),
+          Icon(Icons.location_on, color: _getDistanceColor(distance), size: 20),
           const SizedBox(width: 4),
           Text(
             _getProximityStatus(distance),
@@ -633,11 +648,11 @@ class _MapPageState extends State<MapPage> {
 
   String _formatLastSeen(String? updatedAt) {
     if (updatedAt == null) return 'Unknown';
-    
+
     try {
       final DateTime lastSeen = DateTime.parse(updatedAt);
       final Duration diff = DateTime.now().difference(lastSeen);
-      
+
       if (diff.inMinutes < 1) {
         return 'Just now';
       } else if (diff.inMinutes < 60) {
@@ -664,9 +679,13 @@ class _MapPageState extends State<MapPage> {
     return 'Nearby';
   }
 
-  void _showUserDetails(BuildContext context, Map<String, dynamic> user, ProximityProvider provider) {
+  void _showUserDetails(
+    BuildContext context,
+    Map<String, dynamic> user,
+    ProximityProvider provider,
+  ) {
     final distance = user['distance_meters']?.toDouble() ?? 0.0;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -686,7 +705,9 @@ class _MapPageState extends State<MapPage> {
                 Text(
                   'Current mood: ${MoodUtils.getMoodDisplayName(user['mental_state'])}',
                   style: TextStyle(
-                    color: MoodUtils.getMoodColorFromState(user['mental_state']),
+                    color: MoodUtils.getMoodColorFromState(
+                      user['mental_state'],
+                    ),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

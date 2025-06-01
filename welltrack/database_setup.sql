@@ -129,40 +129,70 @@ LANGUAGE plpgsql
 SECURITY DEFINER  -- This allows the function to bypass RLS
 AS $$
 BEGIN
-  RETURN QUERY
-  SELECT 
-    u.id,
-    u.name,
-    u.email,
-    u.avatar,
-    u.mental_state,
-    ul.latitude,
-    ul.longitude,
-    (6371000 * acos(
-      LEAST(1.0, -- Prevent acos domain error
-        cos(radians(user_lat)) * 
-        cos(radians(ul.latitude)) * 
-        cos(radians(ul.longitude) - radians(user_lng)) + 
-        sin(radians(user_lat)) * 
-        sin(radians(ul.latitude))
-      )
-    )) as distance_meters,
-    ul.updated_at
-  FROM public.users u
-  INNER JOIN user_locations ul ON u.id = ul.user_id
-  WHERE u.id != current_user_id
-    AND (u.privacy_visible = TRUE OR u.privacy_visible IS NULL)
-    AND ul.privacy_location = TRUE
-    AND (6371000 * acos(
-      LEAST(1.0,
-        cos(radians(user_lat)) * 
-        cos(radians(ul.latitude)) * 
-        cos(radians(ul.longitude) - radians(user_lng)) + 
-        sin(radians(user_lat)) * 
-        sin(radians(ul.latitude))
-      )
-    )) <= radius_meters
-  ORDER BY distance_meters;
+  -- Handle infinite or very large radius (worldwide search)
+  IF radius_meters > 20037508 OR radius_meters = 'infinity' THEN
+    RETURN QUERY
+    SELECT 
+      u.id,
+      u.name,
+      u.email,
+      u.avatar,
+      u.mental_state,
+      ul.latitude,
+      ul.longitude,
+      (6371000 * acos(
+        LEAST(1.0, -- Prevent acos domain error
+          cos(radians(user_lat)) * 
+          cos(radians(ul.latitude)) * 
+          cos(radians(ul.longitude) - radians(user_lng)) + 
+          sin(radians(user_lat)) * 
+          sin(radians(ul.latitude))
+        )
+      )) as distance_meters,
+      ul.updated_at
+    FROM public.users u
+    INNER JOIN user_locations ul ON u.id = ul.user_id
+    WHERE u.id != current_user_id
+      AND (u.privacy_visible = TRUE OR u.privacy_visible IS NULL)
+      AND ul.privacy_location = TRUE
+    ORDER BY distance_meters;
+  ELSE
+    -- Normal radius-limited search
+    RETURN QUERY
+    SELECT 
+      u.id,
+      u.name,
+      u.email,
+      u.avatar,
+      u.mental_state,
+      ul.latitude,
+      ul.longitude,
+      (6371000 * acos(
+        LEAST(1.0, -- Prevent acos domain error
+          cos(radians(user_lat)) * 
+          cos(radians(ul.latitude)) * 
+          cos(radians(ul.longitude) - radians(user_lng)) + 
+          sin(radians(user_lat)) * 
+          sin(radians(ul.latitude))
+        )
+      )) as distance_meters,
+      ul.updated_at
+    FROM public.users u
+    INNER JOIN user_locations ul ON u.id = ul.user_id
+    WHERE u.id != current_user_id
+      AND (u.privacy_visible = TRUE OR u.privacy_visible IS NULL)
+      AND ul.privacy_location = TRUE
+      AND (6371000 * acos(
+        LEAST(1.0,
+          cos(radians(user_lat)) * 
+          cos(radians(ul.latitude)) * 
+          cos(radians(ul.longitude) - radians(user_lng)) + 
+          sin(radians(user_lat)) * 
+          sin(radians(ul.latitude))
+        )
+      )) <= radius_meters
+    ORDER BY distance_meters;
+  END IF;
 END;
 $$;
 

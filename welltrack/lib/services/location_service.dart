@@ -156,14 +156,17 @@ class LocationService {
         return [];
       }
 
-      print('LocationService: Getting nearby users for user $_currentUserId at ${_currentPosition!.latitude}, ${_currentPosition!.longitude} within ${radiusInMeters}m');
+      // Convert infinity to a very large number that the database can handle
+      final dbRadius = radiusInMeters.isInfinite ? 50000000.0 : radiusInMeters; // 50,000km (more than Earth's circumference)
+
+      print('LocationService: Getting nearby users for user $_currentUserId at ${_currentPosition!.latitude}, ${_currentPosition!.longitude} within ${radiusInMeters.isInfinite ? 'worldwide' : '${radiusInMeters}m'}');
 
       // Use the stored function for efficient nearby user queries
       final response = await supabase.rpc('get_nearby_users', params: {
         'current_user_id': _currentUserId!,
         'user_lat': _currentPosition!.latitude,
         'user_lng': _currentPosition!.longitude,
-        'radius_meters': radiusInMeters,
+        'radius_meters': dbRadius,
       });
 
       final nearbyUsers = List<Map<String, dynamic>>.from(response ?? []);
@@ -237,9 +240,10 @@ class LocationService {
           ),
         );
 
-        print('LocationService: User ${userLocation['user_id']} is ${distance}m away (radius: ${radiusInMeters}m)');
+        print('LocationService: User ${userLocation['user_id']} is ${distance}m away (radius: ${radiusInMeters.isInfinite ? 'worldwide' : '${radiusInMeters}m'})');
 
-        if (distance <= radiusInMeters) {
+        // For infinite radius, include all users. For finite radius, check distance
+        if (radiusInMeters.isInfinite || distance <= radiusInMeters) {
           // Flatten the structure to match the stored function output
           final user = userLocation['users'];
           nearbyUsers.add({
