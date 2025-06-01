@@ -67,6 +67,17 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app needs access to photo library to select profile pictures</string>
 	<!-- End of Camera and Photo Library Permissions -->
-	
+
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to show nearby users</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location to show nearby users</string>
+	<!-- End of Location Permissions -->
+
+	<!-- Google Maps API Key -->
+	<key>GOOGLE_MAPS_API_KEY</key>
+	<string>AIzaSyDCy7pahiBO2Sz0FleRE2R8iaxVl76JRoQ</string>
+	<!-- End of Google Maps API Key -->
 	</dict>
 </plist>

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
+import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/navigation_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,8 +27,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => UserProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => ProximityProvider()),
+      ],
       child: MaterialApp(
         title: 'WellTrack',
         debugShowCheckedModeBanner: false,

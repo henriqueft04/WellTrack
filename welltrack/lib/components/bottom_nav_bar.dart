@@ -26,7 +26,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
     if (modalRoute?.settings.name != null) {
       final routeName = modalRoute!.settings.name!;
       if (routeName.contains('HomePage')) return 0;
-      if (routeName.contains('JournalPage')) return 1;
+      if (routeName.contains('MapPage')) return 1;
       if (routeName.contains('CalendarPage')) return 2;
       if (routeName.contains('StatsPage')) return 3;
       if (routeName.contains('ProfilePage')) return 4;
@@ -37,7 +37,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
       final elementType = elementWidget.runtimeType.toString();
       
       if (elementType.contains('HomePage')) return false;
-      if (elementType.contains('JournalPage')) return false;
+      if (elementType.contains('MapPage')) return false;
       if (elementType.contains('CalendarPage')) return false;
       if (elementType.contains('StatsPage')) return false;
       if (elementType.contains('ProfilePage')) return false;
@@ -57,14 +57,14 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
     return CircleNavBar(
       activeIcons: const [
         Icon(Icons.home, color: activeColor),
-        Icon(Icons.book, color: activeColor),
+        Icon(Icons.map, color: activeColor),
         Icon(Icons.calendar_today, color: activeColor),
         Icon(Icons.fitness_center, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
       inactiveIcons: [
         Icon(Icons.home, color: inactiveColor),
-        Icon(Icons.book, color: inactiveColor),
+        Icon(Icons.map, color: inactiveColor),
         Icon(Icons.calendar_today, color: inactiveColor),
         Icon(Icons.fitness_center, color: inactiveColor),
         Icon(Icons.person, color: inactiveColor),
