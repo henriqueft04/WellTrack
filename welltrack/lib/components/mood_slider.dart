@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/pages/home_page.dart';
+import 'package:welltrack/utils/mood_utils.dart';
 
 Widget buildMoodSlider(
   BuildContext context,
@@ -23,9 +24,9 @@ Widget buildMoodSlider(
     child: Column(
       children: [
         Icon(
-          _getMoodIcon(moodValue),
+          MoodUtils.getMoodIcon(moodValue),
           size: 50,
-          color: _getMoodColor(moodValue),
+          color: MoodUtils.getMoodColor(moodValue),
         ),
         const SizedBox(height: 16),
         SliderTheme(
@@ -60,30 +61,4 @@ Widget buildMoodSlider(
       ],
     ),
   );
-}
-
-IconData _getMoodIcon(double moodValue) {
-  if (moodValue == 0.0) {
-    return Icons.sentiment_very_dissatisfied;
-  } else if (moodValue == 0.5) {
-    return Icons.sentiment_dissatisfied;
-  } else if (moodValue <= 1.5) {
-    return Icons.sentiment_neutral;
-  } else {
-    return Icons.sentiment_very_satisfied;
-  }
-}
-
-Color _getMoodColor(double moodValue) {
-  if (moodValue == 0.0) {
-    return Colors.red;
-  } else if (moodValue == 0.5) {
-    return Colors.deepOrange;
-  } else if (moodValue == 1.0) {
-    return Colors.orange;
-  } else if (moodValue == 1.5) {
-    return Colors.lightGreen;
-  } else {
-    return Colors.green;
-  }
 }
