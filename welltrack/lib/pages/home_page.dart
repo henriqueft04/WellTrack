@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
     _walkingPlace = 0.85 + (_random.nextDouble() * 0.3);
     _consecutiveSteps = 0;
 
-    _startStepCountting();
+    _startStepCounting();
   }
 
   void _stopWalkingSession() {
@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
     _sessionTimer = null;
   }
 
-  void _startStepCountting() {
+  void _startStepCounting() {
     _stepTimer?.cancel();
 
     int baseInterval = (600/ _walkingPlace).round();
@@ -165,7 +165,7 @@ class _HomePageState extends State<HomePage> {
         double adjustment = 0.95 + (_random.nextDouble() * 0.1);
         _walkingPlace = (_walkingPlace * adjustment).clamp(0.7, 1.3);
 
-        _startStepCountting();
+        _startStepCounting();
       }
       });
 
@@ -196,7 +196,7 @@ class _HomePageState extends State<HomePage> {
 
         Timer(Duration(seconds: 1 + _random.nextInt(3)), () {
           if (_isWalking) {
-            _startStepCountting();
+            _startStepCounting();
           }
         });
       }
@@ -391,7 +391,6 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Image.asset('lib/images/martim.png', height: 50),
                 ),
-
                 // Mood Slider
                 // Replace the existing Slider with this SliderTheme to match the mockup:
                 Padding(
@@ -613,6 +612,14 @@ class _HomePageState extends State<HomePage> {
                           ),
                           SizedBox(height: 4),
                           Text('5.3 km'),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.settings),
+                            onPressed: _showGoalDialog,
+                          ),
                         ],
                       ),
                     ],
