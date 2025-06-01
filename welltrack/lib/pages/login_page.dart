@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hexcolor/hexcolor.dart';
-import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/main.dart';
 import 'package:sign_button/sign_button.dart';
 import 'package:welltrack/pages/sign_up_page.dart';
 import 'package:welltrack/components/email_pass.dart';
 import 'package:welltrack/controllers/sign_up_controller.dart';
+import 'package:welltrack/components/main_navigation.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => const HomePage(),
+              builder: (context) => const MainNavigation(initialIndex: 0),
             ),
             (route) => false, // Remove all previous routes
           );
@@ -193,7 +193,7 @@ class _LoginPageState extends State<LoginPage> {
                                       Navigator.pushAndRemoveUntil(
                                         this.context,
                                         MaterialPageRoute(
-                                          builder: (context) => const HomePage(),
+                                          builder: (context) => const MainNavigation(initialIndex: 0),
                                         ),
                                         (route) => false, // Remove all previous routes
                                       );

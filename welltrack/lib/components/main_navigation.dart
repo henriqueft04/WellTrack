@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:welltrack/components/bottom_nav_bar.dart';
+import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/pages/journal_page.dart';
 import 'package:welltrack/pages/calendar_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
@@ -34,6 +35,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   List<Widget> get _pages => [
+    const HomePage(),
     const JournalPage(),
     const CalendarPage(),
     const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5),

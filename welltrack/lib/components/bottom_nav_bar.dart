@@ -20,13 +20,15 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
     return CircleNavBar(
       activeIcons: const [
         Icon(Icons.home, color: activeColor),
-        Icon(Icons.location_on, color: activeColor),
+        Icon(Icons.book, color: activeColor),
+        Icon(Icons.calendar_today, color: activeColor),
         Icon(Icons.fitness_center, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
       inactiveIcons: [
         Icon(Icons.home, color: inactiveColor),
-        Icon(Icons.location_on, color: inactiveColor),
+        Icon(Icons.book, color: inactiveColor),
+        Icon(Icons.calendar_today, color: inactiveColor),
         Icon(Icons.fitness_center, color: inactiveColor),
         Icon(Icons.person, color: inactiveColor),
       ],

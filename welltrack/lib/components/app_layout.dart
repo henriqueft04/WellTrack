@@ -45,7 +45,7 @@ class AppLayout extends StatelessWidget {
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: showLogo ? TextAlign.center : TextAlign.left,
+                textAlign: TextAlign.left,
               ),
             ),
             

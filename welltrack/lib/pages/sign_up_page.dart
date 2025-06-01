@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:welltrack/pages/login_page.dart';
-import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/components/email_pass.dart';
 import 'package:welltrack/controllers/sign_up_controller.dart';
 import 'package:sign_button/sign_button.dart';
+import 'package:welltrack/components/main_navigation.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -38,7 +38,7 @@ class _SignUpPageState extends State<SignUpPage> {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
-              builder: (context) => const HomePage(),
+              builder: (context) => const MainNavigation(initialIndex: 0),
             ),
             (route) => false, // Remove all previous routes
           );
@@ -168,7 +168,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       Navigator.pushAndRemoveUntil(
                                         this.context,
                                         MaterialPageRoute(
-                                          builder: (context) => const HomePage(),
+                                          builder: (context) => const MainNavigation(initialIndex: 0),
                                         ),
                                         (route) => false,
                                       );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/pages/home_page.dart';
+import 'package:welltrack/components/main_navigation.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -14,7 +14,7 @@ class AboutPage extends StatelessWidget {
           onPressed: () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
+              MaterialPageRoute(builder: (context) => const MainNavigation(initialIndex: 0)),
             );
           },
         ),
