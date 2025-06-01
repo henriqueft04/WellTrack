@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
   static final _databaseName = "WellTrack.db";
-  static final _databaseVersion = 1;
+  static final _databaseVersion = 2;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -21,6 +21,7 @@ class DatabaseHelper {
       path,
       version: _databaseVersion,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -28,12 +29,44 @@ class DatabaseHelper {
     await db.execute('''
       CREATE TABLE mental_states (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        state TEXT NOT NULL,
+        state REAL NOT NULL,
         date TEXT NOT NULL,
         emotions TEXT,
         factors TEXT
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Migrate state column from TEXT to REAL
+      // This is a simplified migration. A more robust migration might involve
+      // preserving data if possible or handling potential errors.
+      await db.execute('''
+        ALTER TABLE mental_states
+        ADD COLUMN state_new REAL;
+      ''');
+      await db.execute('''
+        UPDATE mental_states
+        SET state_new = CAST(state AS REAL)
+        WHERE state IS NOT NULL;
+      ''');
+      await db.execute('''
+        CREATE TEMPORARY TABLE mental_states_backup (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          state REAL NOT NULL,
+          date TEXT NOT NULL,
+          emotions TEXT,
+          factors TEXT
+        );
+      ''');
+      await db.execute('''
+        INSERT INTO mental_states_backup (id, state, date, emotions, factors)
+        SELECT id, state_new, date, emotions, factors FROM mental_states;
+      ''');
+      await db.execute('DROP TABLE mental_states;');
+      await db.execute('ALTER TABLE mental_states_backup RENAME TO mental_states;');
+    }
   }
 
   Future<int> insertMentalState(Map<String, dynamic> row) async {

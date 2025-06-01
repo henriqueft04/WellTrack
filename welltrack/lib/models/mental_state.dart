@@ -31,9 +31,7 @@ class MentalState{
   factory MentalState.fromMap(Map<String, dynamic> map) {
     return MentalState(
       id: map['id'],
-      state: map['state'] is String 
-          ? _convertStateToDouble(map['state'])
-          : map['state'].toDouble(),
+      state: map['state'].toDouble(),
       date: DateTime.parse(map['date']),
       emotions: map['emotions'] != null
           ? Set<String>.from(map['emotions'].split(',').map((e) => e.trim()))

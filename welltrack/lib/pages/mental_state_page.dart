@@ -80,24 +80,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
                 );
               },
             ),
-            const SizedBox(height: 24),
-            StyledActionButton(
-              icon: Icons.book,
-              label: 'Journal',
-              color: Colors.pink.shade200,
-              background: Colors.pink.shade200.withOpacity(0.1),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => JournalSelectionPage(
-                      selectedDate: DateTime.now(),
-                      originIndex: widget.originIndex,
-                    ),
-                  ),
-                );
-              },
-            ),
+          
             const SizedBox(height: 32),
             const Text(
               'Today\'s Mood Overview',
@@ -171,7 +154,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
                         minX: 0,
                         maxX: 24, // Assuming 24 hours
                         minY: 0,
-                        maxY: 2, // Mapping 0: Unpleasant, 1: Neutral, 2: Pleasant
+                        maxY: 3, // Mapping 0: Unpleasant, 1: Neutral, 2: Pleasant
                         lineBarsData: [
                           LineChartBarData(
                             spots: dailyStates.map((state) {
