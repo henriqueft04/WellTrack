@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/pages/journal_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
-import 'package:welltrack/pages/about_page.dart';
 import 'package:welltrack/pages/calendar_page.dart';
 import 'package:welltrack/pages/profile_page.dart';
 import 'package:welltrack/pages/mental_state_page.dart';
@@ -352,10 +351,35 @@ class _HomePageState extends State<HomePage> {
             label: 'State of Mind',
             color: Colors.blue,
             background: const Color(0xFFE3F2FD),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MentalStateFormPage()),
-            ),
+            onTap: () {
+              // Check if the selected date is in the future
+              final selectedDate = _calendarDays[_selectedDayIndex];
+              if (selectedDate.isAfter(DateTime.now())) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Future Date'),
+                      content: const Text('You cannot update your state in the future.'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('OK'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                // Navigate to MentalStateFormPage if the date is not in the future
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MentalStateFormPage(selectedDate: _calendarDays[_selectedDayIndex])),
+                );
+              }
+            },
           ),
           const SizedBox(height: HomePageConstants.cardSpacing),
           _StyledActionButton(
@@ -363,10 +387,35 @@ class _HomePageState extends State<HomePage> {
             label: 'Journal',
             color: Colors.pink,
             background: Color(0xFFFCE4EC),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const JournalSelectionPage()),
-            ),
+            onTap: () {
+              // Check if the selected date is in the future
+              final selectedDate = _calendarDays[_selectedDayIndex];
+              if (selectedDate.isAfter(DateTime.now())) {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Future Date'),
+                      content: const Text('You cannot create a journal entry in the future.'),
+                      actions: <Widget>[
+                        TextButton(
+                          child: const Text('OK'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                );
+              } else {
+                // Navigate to JournalSelectionPage if the date is not in the future
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => JournalSelectionPage(selectedDate: selectedDate)),
+                );
+              }
+            },
           ),
         ],
       ),

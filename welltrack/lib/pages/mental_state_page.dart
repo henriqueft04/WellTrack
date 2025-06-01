@@ -31,7 +31,7 @@ class MentalStatePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MentalStateFormPage()),
+                  MaterialPageRoute(builder: (context) => MentalStateFormPage(selectedDate: DateTime.now())),
                 );
               },
             ),
@@ -44,7 +44,7 @@ class MentalStatePage extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const JournalSelectionPage()),
+                  MaterialPageRoute(builder: (context) => JournalSelectionPage(selectedDate: DateTime.now())),
                 );
               },
             ),
@@ -100,7 +100,8 @@ class MentalStatePage extends StatelessWidget {
 }
 
 class MentalStateFormPage extends StatefulWidget {
-  const MentalStateFormPage({super.key});
+  final DateTime selectedDate;
+  const MentalStateFormPage({super.key, required this.selectedDate});
 
   @override
   State<MentalStateFormPage> createState() => _MentalStateFormPageState();
@@ -146,10 +147,13 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
         elevation: 0,
         title: const Text('State of Mind', style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Center(child: Text('16/05', style: TextStyle(color: Colors.black))),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(child: Text(
+              '${widget.selectedDate.day.toString().padLeft(2, '0')}/${widget.selectedDate.month.toString().padLeft(2, '0')}',
+              style: TextStyle(color: Colors.black)
+              )),
           )
         ],
       ),
@@ -344,7 +348,8 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
 
 // --- JournalSelectionPage ---
 class JournalSelectionPage extends StatelessWidget {
-  const JournalSelectionPage({super.key});
+  final DateTime selectedDate;
+  const JournalSelectionPage({super.key, required this.selectedDate});
 
   @override
   Widget build(BuildContext context) {
@@ -355,10 +360,13 @@ class JournalSelectionPage extends StatelessWidget {
         elevation: 0,
         title: const Text('journal', style: TextStyle(color: Colors.black)),
         centerTitle: true,
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16.0),
-            child: Center(child: Text('16/05', style: TextStyle(color: Colors.black))),
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(child: Text(
+              '${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}',
+              style: TextStyle(color: Colors.black)
+              )),
           )
         ],
       ),
@@ -378,10 +386,32 @@ class JournalSelectionPage extends StatelessWidget {
               icon: Icons.visibility,
               color: Colors.lightBlue,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SeeMyThoughtsPage()),
-                );
+                // Check if the selected date is in the future
+                if (selectedDate.isAfter(DateTime.now())) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Future Date'),
+                        content: const Text('You cannot view entries for a future date.'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  // Navigate to SeeMyThoughtsPage if the date is not in the future
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SeeMyThoughtsPage()),
+                  );
+                }
               },
             ),
             const SizedBox(height: 24),
@@ -391,10 +421,32 @@ class JournalSelectionPage extends StatelessWidget {
               icon: Icons.edit,
               color: Colors.pink.shade200,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const InsertThoughtsPage()),
-                );
+                // Check if the selected date is in the future
+                if (selectedDate.isAfter(DateTime.now())) {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Future Date'),
+                        content: const Text('You cannot create entries for a future date.'),
+                        actions: <Widget>[
+                          TextButton(
+                            child: const Text('OK'),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  // Navigate to InsertThoughtsPage if the date is not in the future
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const InsertThoughtsPage()),
+                  );
+                }
               },
             ),
           ],
@@ -630,17 +682,18 @@ class SeeMyThoughtsPage extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: _ChatBubble(
+              color: Colors.blue.shade50,
               child: Image.network(
                 'https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg',
                 height: 120,
               ),
-              color: Colors.blue.shade50,
             ),
           ),
           // Example audio entry
           Align(
             alignment: Alignment.centerLeft,
             child: _ChatBubble(
+              color: Colors.grey.shade100,
               child: Row(
                 children: [
                   IconButton(
@@ -666,7 +719,6 @@ class SeeMyThoughtsPage extends StatelessWidget {
                   const Text('1:51 minutes'),
                 ],
               ),
-              color: Colors.grey.shade100,
             ),
           ),
         ],
