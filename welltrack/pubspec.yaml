@@ -37,6 +37,8 @@ dependencies:
   google_nav_bar: ^5.0.6
   table_calendar: ^3.0.9
   circle_nav_bar: ^2.2.0
+  sqflite: ^2.4.2
+  path_provider: ^2.1.5
   google_sign_in: ^6.3.0
   supabase_flutter: ^2.9.0
   sign_button: ^2.0.6

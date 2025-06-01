@@ -98,10 +98,6 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future<void> _handleSignOut() async {
-    await supabase.auth.signOut();
-  }
-
   Widget googleSignInButton() {
     return SignInButton(
       buttonType: ButtonType.google,

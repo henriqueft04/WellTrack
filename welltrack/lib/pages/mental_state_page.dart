@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
 
+
 class MentalStatePage extends StatelessWidget {
   final int? originIndex; // Track which main page this was navigated from
   
@@ -9,50 +10,50 @@ class MentalStatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NonMainPageWrapper(
-      originIndex: originIndex, // Pass the origin index
-      child: AppLayout(
-        pageTitle: 'Mental Health',
-        showLogo: false,
-        isMainPage: false,
-        showBackButton: true,
-        content: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Choose an option',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 32),
-              _buildOptionCard(
-                context,
-                title: 'State of Mind',
-                icon: Icons.sentiment_satisfied,
-                color: Colors.lightBlue,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => MentalStateFormPage(originIndex: originIndex)),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              _buildOptionCard(
-                context,
-                title: 'Journal',
-                icon: Icons.book,
-                color: Colors.pink.shade200,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => JournalSelectionPage(originIndex: originIndex)),
-                  );
-                },
-              ),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(color: Colors.black),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Mental Health', style: TextStyle(color: Colors.black)),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Choose an option',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 32),
+            _buildOptionCard(
+              context,
+              title: 'State of Mind',
+              icon: Icons.sentiment_satisfied,
+              color: Colors.lightBlue,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => MentalStateFormPage(selectedDate: DateTime.now())),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            _buildOptionCard(
+              context,
+              title: 'Journal',
+              icon: Icons.book,
+              color: Colors.pink.shade200,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => JournalSelectionPage(selectedDate: DateTime.now(), originIndex: originIndex)),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -106,7 +107,8 @@ class MentalStatePage extends StatelessWidget {
 class MentalStateFormPage extends StatefulWidget {
   final int? originIndex;
   
-  const MentalStateFormPage({super.key, this.originIndex});
+  final DateTime selectedDate;
+  const MentalStateFormPage({super.key, this.originIndex, required this.selectedDate});
 
   @override
   State<MentalStateFormPage> createState() => _MentalStateFormPageState();
@@ -159,10 +161,10 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Date indicator
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text('16/05', style: TextStyle(color: Colors.black)),
+                    Text('${widget.selectedDate.day.toString().padLeft(2, '0')}/${widget.selectedDate.month.toString().padLeft(2, '0')}', style: TextStyle(color: Colors.black)),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -347,7 +349,8 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
 class JournalSelectionPage extends StatelessWidget {
   final int? originIndex;
   
-  const JournalSelectionPage({super.key, this.originIndex});
+  final DateTime selectedDate;
+  const JournalSelectionPage({super.key, this.originIndex, required this.selectedDate});
 
   @override
   Widget build(BuildContext context) {
@@ -364,10 +367,10 @@ class JournalSelectionPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Date indicator
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text('16/05', style: TextStyle(color: Colors.black)),
+                  Text('${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.month.toString().padLeft(2, '0')}', style: TextStyle(color: Colors.black)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -630,7 +633,7 @@ class SeeMyThoughtsPage extends StatelessWidget {
           padding: const EdgeInsets.all(24.0),
           children: [
             // Date indicator
-            const Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text('16/05', style: TextStyle(color: Colors.black)),
