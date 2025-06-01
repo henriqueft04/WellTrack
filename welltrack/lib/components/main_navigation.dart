@@ -116,11 +116,13 @@ class MainPageWrapper extends StatelessWidget {
 class NonMainPageWrapper extends StatelessWidget {
   final Widget child;
   final bool showBackButton;
+  final int? originIndex; // Track which main page this was navigated from
   
   const NonMainPageWrapper({
     super.key,
     required this.child,
     this.showBackButton = true,
+    this.originIndex, // Add originIndex parameter
   });
 
   @override
@@ -128,7 +130,7 @@ class NonMainPageWrapper extends StatelessWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: MyBottomNavBar(
-        currentIndex: null, // No current index for secondary pages
+        currentIndex: originIndex, // Use originIndex instead of null
         onTabChange: (index) {
           // When user taps navbar from a non-main page, navigate to main navigation
           // This preserves the back stack so Android back button still works

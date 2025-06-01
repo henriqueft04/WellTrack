@@ -154,7 +154,7 @@ class _JournalPageState extends State<JournalPage> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const MentalStatePage()),
+                        MaterialPageRoute(builder: (context) => MentalStatePage(originIndex: 1)),
                       );
                     },
                     child: Container(

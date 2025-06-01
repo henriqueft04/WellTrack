@@ -3,11 +3,14 @@ import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
 
 class MentalStatePage extends StatelessWidget {
-  const MentalStatePage({super.key});
+  final int? originIndex; // Track which main page this was navigated from
+  
+  const MentalStatePage({super.key, this.originIndex});
 
   @override
   Widget build(BuildContext context) {
     return NonMainPageWrapper(
+      originIndex: originIndex, // Pass the origin index
       child: AppLayout(
         pageTitle: 'Mental Health',
         showLogo: false,
@@ -31,7 +34,7 @@ class MentalStatePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const MentalStateFormPage()),
+                    MaterialPageRoute(builder: (context) => MentalStateFormPage(originIndex: originIndex)),
                   );
                 },
               ),
@@ -44,7 +47,7 @@ class MentalStatePage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const JournalSelectionPage()),
+                    MaterialPageRoute(builder: (context) => JournalSelectionPage(originIndex: originIndex)),
                   );
                 },
               ),
@@ -101,7 +104,9 @@ class MentalStatePage extends StatelessWidget {
 }
 
 class MentalStateFormPage extends StatefulWidget {
-  const MentalStateFormPage({super.key});
+  final int? originIndex;
+  
+  const MentalStateFormPage({super.key, this.originIndex});
 
   @override
   State<MentalStateFormPage> createState() => _MentalStateFormPageState();
@@ -141,6 +146,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
   @override
   Widget build(BuildContext context) {
     return NonMainPageWrapper(
+      originIndex: widget.originIndex,
       child: AppLayout(
         pageTitle: 'State of Mind',
         showLogo: false,
@@ -339,11 +345,14 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
 
 // --- JournalSelectionPage ---
 class JournalSelectionPage extends StatelessWidget {
-  const JournalSelectionPage({super.key});
+  final int? originIndex;
+  
+  const JournalSelectionPage({super.key, this.originIndex});
 
   @override
   Widget build(BuildContext context) {
     return NonMainPageWrapper(
+      originIndex: originIndex,
       child: AppLayout(
         pageTitle: 'journal',
         showLogo: false,
@@ -376,7 +385,7 @@ class JournalSelectionPage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const SeeMyThoughtsPage()),
+                    MaterialPageRoute(builder: (context) => SeeMyThoughtsPage(originIndex: originIndex)),
                   );
                 },
               ),
@@ -389,7 +398,7 @@ class JournalSelectionPage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const InsertThoughtsPage()),
+                    MaterialPageRoute(builder: (context) => InsertThoughtsPage(originIndex: originIndex)),
                   );
                 },
               ),
@@ -447,7 +456,9 @@ class JournalSelectionPage extends StatelessWidget {
 
 // --- InsertThoughtsPage ---
 class InsertThoughtsPage extends StatefulWidget {
-  const InsertThoughtsPage({super.key});
+  final int? originIndex;
+  
+  const InsertThoughtsPage({super.key, this.originIndex});
 
   @override
   State<InsertThoughtsPage> createState() => _InsertThoughtsPageState();
@@ -474,6 +485,7 @@ class _InsertThoughtsPageState extends State<InsertThoughtsPage> with SingleTick
     final unselectedColor = Colors.black54;
     
     return NonMainPageWrapper(
+      originIndex: widget.originIndex,
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
@@ -601,11 +613,14 @@ class _InsertThoughtsPageState extends State<InsertThoughtsPage> with SingleTick
 
 // --- SeeMyThoughtsPage ---
 class SeeMyThoughtsPage extends StatelessWidget {
-  const SeeMyThoughtsPage({super.key});
+  final int? originIndex;
+  
+  const SeeMyThoughtsPage({super.key, this.originIndex});
 
   @override
   Widget build(BuildContext context) {
     return NonMainPageWrapper(
+      originIndex: originIndex,
       child: AppLayout(
         pageTitle: 'journal',
         showLogo: false,
