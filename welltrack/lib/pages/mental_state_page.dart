@@ -108,6 +108,8 @@ class _MentalStatePageState extends State<MentalStatePage> {
                   // Sort states by hour
                   dailyStates.sort((a, b) => a.date.hour.compareTo(b.date.hour));
 
+                  
+
                   return Padding(
                     padding: const EdgeInsets.only(right: 22.0, top: 18.0),
                     child: LineChart(
@@ -117,7 +119,8 @@ class _MentalStatePageState extends State<MentalStatePage> {
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
-                              reservedSize: 30,
+                              reservedSize: 50,
+                              interval: 1,
                               getTitlesWidget: (value, meta) {
                                 switch (value.toInt()) {
                                   case 0: return const Text('Unpleasant', style: TextStyle(fontSize: 10));
@@ -134,7 +137,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
                               reservedSize: 30,
                               getTitlesWidget: (value, meta) {
                                 final hour = value.toInt();
-                                if (hour % 2 == 0) { // Show every other hour for less clutter
+                                if (hour % 2 == 0) {
                                   return Padding(
                                     padding: const EdgeInsets.only(top: 8.0),
                                     child: Text('$hour:00', style: const TextStyle(fontSize: 10)),
@@ -152,17 +155,22 @@ class _MentalStatePageState extends State<MentalStatePage> {
                           border: Border.all(color: const Color(0xff37434d), width: 1),
                         ),
                         minX: 0,
-                        maxX: 24, // Assuming 24 hours
+                        maxX: 24,
                         minY: 0,
-                        maxY: 3, // Mapping 0: Unpleasant, 1: Neutral, 2: Pleasant
+                        maxY: 3,
                         lineBarsData: [
                           LineChartBarData(
                             spots: dailyStates.map((state) {
-                              return FlSpot(state.date.hour.toDouble(), state.state);
+                              final hour = state.date.hour;
+                              final minute = state.date.minute;
+                              final second = state.date.second;
+                              final xValue = hour.toDouble() + (minute / 60.0) + (second / 3600.0);
+                              return FlSpot(xValue, state.state);
                             }).toList(),
                             isCurved: true,
                             color: Colors.blue,
-                            dotData: const FlDotData(show: true),
+                            barWidth: 3.0,
+                            dotData: FlDotData(show: true, getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(radius: 4, color: Colors.red, strokeWidth: 0)),
                             belowBarData: BarAreaData(show: false),
                           ),
                         ],
