@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:welltrack/pages/home_page.dart';
+import 'package:welltrack/components/app_layout.dart';
 import 'journal_page.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -51,29 +51,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Cabeçalho da página com botão para voltar atrás
-      appBar: AppBar(
-        title: const Text(
-          'Calendar',
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          // Botão de voltar para trás volta sempre para a HomePage
-          // pode ser mudado. O problema é que também se pode ir para
-          // Calendar desde o menú lateral
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-              (route) => false,
-            );
-          },
-        ),
-      ),
-
-      body: Padding(
+    return AppLayout(
+      pageTitle: "Calendar",
+      showLogo: true,
+      isMainPage: true,
+      content: Padding(
         padding: const EdgeInsets.all(16.0),
         child: TableCalendar(
           // Primeiro e último dia possíveis no calendário
@@ -97,12 +79,12 @@ class _CalendarPageState extends State<CalendarPage> {
           // Define que dias estão ativos (clicáveis)
           enabledDayPredicate: _isDayEnabled,
 
-          calendarStyle: CalendarStyle(
+          calendarStyle: const CalendarStyle(
             todayDecoration: BoxDecoration(
               color: Colors.lightBlue,
               shape: BoxShape.circle,
             ),
-            disabledTextStyle: const TextStyle(color: Colors.grey),
+            disabledTextStyle: TextStyle(color: Colors.grey),
           ),
         ),
       ),

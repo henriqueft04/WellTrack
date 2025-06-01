@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:welltrack/components/app_layout.dart';
 
 class StatsPage extends StatefulWidget {
   final double steps;
@@ -33,29 +34,15 @@ class _StatsPageState extends State<StatsPage> {
     const double maxCalories = 500;
     const double maxDistance = 6;
 
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text(
-          "Your Stats",
-          style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Padding(
+    return AppLayout(
+      pageTitle: "Your Stats",
+      showLogo: true,
+      isMainPage: true,
+      content: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const SizedBox(height: 24),
-            // Logo and title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/images/martim.png', height: 60),
-              ],
-            ),
-            const SizedBox(height: 32),
             // Steps Card
             _StatCard(
               value: widget.steps,
