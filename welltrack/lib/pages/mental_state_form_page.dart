@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
+import 'package:provider/provider.dart';
+import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/mental_state_service.dart';
 import 'package:welltrack/utils/mood_utils.dart';
@@ -24,36 +26,33 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
   final Set<String> _selectedEmotions = {};
   final Set<String> _selectedImpacts = {};
 
-  // Dependency injection - get service from DI container
-  late final MentalStateService _mentalStateService;
-
   @override
   void initState() {
     super.initState();
-    _mentalStateService = locate<MentalStateService>();
-    _loadExistingData();
-  }
-
-  Future<void> _loadExistingData() async {
-    final existingData = await _mentalStateService.getMentalStateForDate(widget.selectedDate);
-    if (existingData != null) {
-      setState(() {
-        _moodValue = existingData.moodValue;
-        _selectedEmotions.addAll(existingData.emotions);
-        _selectedImpacts.addAll(existingData.impacts);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<MentalStateViewModel>(context, listen: false);
+      viewModel.loadMentalState(widget.selectedDate).then((_) {
+        final data = viewModel.mentalState;
+        if (data != null) {
+          setState(() {
+            _moodValue = data.state;
+            _selectedEmotions.addAll(data.emotions ?? {});
+            _selectedImpacts.addAll(data.factors ?? {});
+          });
+        }
       });
-    }
+    });
   }
 
   Future<void> _saveMentalState() async {
+    final viewModel = Provider.of<MentalStateViewModel>(context, listen: false);
     try {
-      await _mentalStateService.saveMentalState(
+      await viewModel.saveMentalState(
         date: widget.selectedDate,
         moodValue: _moodValue,
         emotions: _selectedEmotions,
         impacts: _selectedImpacts,
       );
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/navigation_service.dart';
+import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -29,6 +31,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => MentalStateViewModel()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => ProximityProvider()),
       ],
@@ -40,7 +43,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
         ),
-        home: const LoginPage(),
+        home: const HomePage(),
       ),
     );
   }
