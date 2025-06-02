@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:welltrack/utils/pedometer_utils.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
 import 'package:welltrack/components/bottom_nav_bar.dart';
@@ -63,29 +64,29 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   //To Pedometer
-  StreamSubscription<PedestrianStatus>? _pedestrianSubscription;
-  Timer? _stepTimer;
-  Timer? _sessionTimer;
+  StreamSubscription<PedestrianStatus>? pedestrianSubscription;
+  Timer? stepTimer;
+  Timer? sessionTimer;
 
   String _status = "Stopped";
-  int _steps = 0;
-  int _todaySteps = 0;
-  bool _isWalking = false;
-  bool _isIntialized = false;
-  bool _ispermissionGranted = false;
-  bool _isLoading = false;
+  int steps = 0;
+  int todaySteps = 0;
+  bool isWalking = false;
+  bool isIntialized = false;
+  bool ispermissionGranted = false;
+  bool isLoading = false;
 
-  Random _random = Random();
-  DateTime? _walkingStartTime;
-  int _currentWalkingSession = 0;
-  double _walkingPlace = 1.0;
-  int _consecutiveSteps = 0;
+  final Random random = Random();
+  DateTime? walkingStartTime;
+  int currentWalkingSession = 0;
+  double walkingPlace = 1.0;
+  int consecutiveSteps = 0;
 
-  double _calories = 0;
-  double _distance = 0;
-  int _dailyGoal = 10000;
+  double calories = 0;
+  double distance = 0;
+  int dailyGoal = 10000;
 
-  List<Map<String, dynamic>> _weeklyData = [];
+  final List<Map<String, dynamic>> _weeklyData = [];
 
   double _moodValue = 1.0;
   late int _selectedDayIndex;
@@ -116,10 +117,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    _pedestrianSubscription?.cancel();
-    _stepTimer?.cancel();
-    _sessionTimer?.cancel();
+    pedestrianSubscription?.cancel();
+    stepTimer?.cancel();
+    sessionTimer?.cancel();
     super.dispose();
   }
 
@@ -127,104 +127,89 @@ class _HomePageState extends State<HomePage> {
     // Check and request permissions for pedometer
     // This is a placeholder; actual implementation may vary based on platform
     setState(() {
-      _isLoading = true;
+      isLoading = true;
     });
-    final status = await Permission.activityRecognition.request();
+    final status = checkActivityPermission();
     debugPrint('Permission status: $status');
     setState(() {
-      _ispermissionGranted = status == PermissionStatus.granted;
+      ispermissionGranted = status == PermissionStatus.granted;
     });
-    if (_ispermissionGranted) {
+    if (ispermissionGranted) {
       await initializeApp();
     }
     setState(() {
-      _isLoading = false;
+      isLoading = false;
     });
   }
 
   Future<void> initializeApp() async {
     await _loadDailyData();
     await _loadTodaySteps();
-    await _setupMovementDetection();
+    pedestrianSubscription = await setupMovementDetection(_handleMovement);
 
     setState(() {
-      _isIntialized = true;
+      isIntialized = true;
     });
-  }
-
-  Future<void> _setupMovementDetection() async {
-    try {
-      _pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
-        (PedestrianStatus event) {
-          _handleMovement(event.status);
-        },
-        onError: (error) {
-          print("Error in pedometer stream: $error");
-        },
-      );
-    } catch (e) {
-      print("Error setting up movement detection: $e");
-    }
   }
 
   void _handleMovement(String status) {
     setState(() {
       _status = status;
     });
-    if (status == "walking" && !_isWalking) {
+    if (status == "walking" && !isWalking) {
       _startWalkingSession();
-    } else if (status == "stopped" && _isWalking) {
+    } else if (status == "stopped" && isWalking) {
       _stopWalkingSession();
     }
   }
 
   void _startWalkingSession() {
-    _isWalking = true;
-    _walkingStartTime = DateTime.now();
-    _currentWalkingSession++;
+    isWalking = true;
+    walkingStartTime = DateTime.now();
+    currentWalkingSession++;
 
-    _walkingPlace = 0.85 + (_random.nextDouble() * 0.3);
-    _consecutiveSteps = 0;
+    walkingPlace = 0.85 + (random.nextDouble() * 0.3);
+    consecutiveSteps = 0;
 
     _startStepCounting();
   }
 
   void _stopWalkingSession() {
-    _isWalking = false;
-    _walkingStartTime = null;
+    isWalking = false;
+    walkingStartTime = null;
 
-    _stepTimer?.cancel();
-    _sessionTimer?.cancel();
-    _stepTimer = null;
-    _sessionTimer = null;
+    stepTimer?.cancel();
+    sessionTimer?.cancel();
+    stepTimer = null;
+    sessionTimer = null;
   }
 
   void _startStepCounting() {
-    _stepTimer?.cancel();
+    stepTimer?.cancel();
 
-    int baseInterval = (600 / _walkingPlace).round();
+    int baseInterval = (600 / walkingPlace).round();
 
-    _stepTimer = Timer.periodic(Duration(milliseconds: baseInterval), (timer) {
-      if (!_isWalking) {
+    stepTimer = Timer.periodic(Duration(milliseconds: baseInterval), (timer) {
+      if (!isWalking) {
         timer.cancel();
         return;
       }
-      double StepChance = _calculateStepProbability();
+      double stepChance = calculateStepProbability(consecutiveSteps, random);
 
-      if (_random.nextDouble() < StepChance) {
+      if (random.nextDouble() < stepChance) {
         setState(() {
-          _steps++;
-          _todaySteps++;
-          _consecutiveSteps++;
+          steps++;
+          todaySteps++;
+          consecutiveSteps++;
 
           _calculateMetrics();
         });
         _saveSteps();
       }
 
-      if (_consecutiveSteps >= 0 && _consecutiveSteps % 20 == 0) {
-        double adjustment = 0.95 + (_random.nextDouble() * 0.1);
-        _walkingPlace = (_walkingPlace * adjustment).clamp(0.7, 1.3);
+      if (consecutiveSteps >= 0 && consecutiveSteps % 20 == 0) {
+        double adjustment = 0.95 + (random.nextDouble() * 0.1);
+        walkingPlace = (walkingPlace * adjustment).clamp(0.7, 1.3);
 
         _startStepCounting();
       }
@@ -233,31 +218,20 @@ class _HomePageState extends State<HomePage> {
     _startSessionPatterns();
   }
 
-  double _calculateStepProbability() {
-    double baseProbability = 0.92;
-
-    if (_consecutiveSteps < 5) {
-      baseProbability += 0.8;
-    }
-
-    double randomVariation = 0.95 + (_random.nextDouble() * 0.1);
-    return (baseProbability * randomVariation).clamp(0.0, 1.0);
-  }
-
   void _startSessionPatterns() {
-    _sessionTimer = Timer.periodic(
-      Duration(seconds: 15 + _random.nextInt(30)),
+    sessionTimer = Timer.periodic(
+      Duration(seconds: 15 + random.nextInt(30)),
       (timer) {
-        if (!_isWalking) {
+        if (!isWalking) {
           timer.cancel();
           return;
         }
 
-        if (_random.nextDouble() < 0.2) {
-          _stepTimer?.cancel();
+        if (random.nextDouble() < 0.2) {
+          stepTimer?.cancel();
 
-          Timer(Duration(seconds: 1 + _random.nextInt(3)), () {
-            if (_isWalking) {
+          Timer(Duration(seconds: 1 + random.nextInt(3)), () {
+            if (isWalking) {
               _startStepCounting();
             }
           });
@@ -266,30 +240,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // calculate metrics like calories and distance
+  // calculate calories and distance
   void _calculateMetrics() {
-    _calories = _steps * 0.04;
-    _distance = (_steps * 0.762) / 1000;
-  }
-
-  String _getDateKey() {
-    return DateFormat('yyyy-MM-dd').format(DateTime.now());
+    calories = calculateCalories(steps);
+    distance = calculateDistance(steps);
   }
 
   Future<void> _loadTodaySteps() async {
     final prefs = await SharedPreferences.getInstance();
-    final today = _getDateKey();
+    final today = getDateKey();
     final _lastDate = prefs.getString('lastDate') ?? '';
 
     if (_lastDate == today) {
       setState(() {
-        _todaySteps = prefs.getInt('steps_$today') ?? 0;
-        _steps = _todaySteps;
+        todaySteps = prefs.getInt('steps_$today') ?? 0;
+        steps = todaySteps;
       });
     } else {
       setState(() {
-        _todaySteps = 0;
-        _steps = 0;
+        todaySteps = 0;
+        steps = 0;
       });
       await prefs.setInt('steps_$today', 0);
       await prefs.setString('lastDate', today);
@@ -299,45 +269,25 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _saveSteps() async {
     final prefs = await SharedPreferences.getInstance();
-    final today = _getDateKey();
+    final today = getDateKey();
 
-    await prefs.setInt('steps_$today', _steps);
+    await prefs.setInt('steps_$today', steps);
     await prefs.setString('lastDate', today);
   }
 
   Future<void> _loadDailyData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _dailyGoal = prefs.getInt('dailyGoal') ?? 10000;
+      dailyGoal = prefs.getInt('dailyGoal') ?? 10000;
     });
-    _loadWeeklyData();
-  }
-
-  Future<void> _loadWeeklyData() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<Map<String, dynamic>> weekData = [];
-
-    for (int i = 6; i >= 0; i--) {
-      final date = DateTime.now().subtract(Duration(days: i));
-      final dateStr = DateFormat('yyyy-MM-dd').format(date);
-      final steps = prefs.getInt('steps_$dateStr') ?? 0;
-
-      weekData.add({
-        'date': dateStr,
-        'steps': steps,
-        'day': DateFormat('E').format(date),
-      });
-    }
-    setState(() {
-      _weeklyData = weekData;
-    });
+    loadWeeklyData();
   }
 
   void _showGoalDialog() {
     showDialog(
       context: context,
       builder: (context) {
-        final controller = TextEditingController(text: _dailyGoal.toString());
+        final controller = TextEditingController(text: dailyGoal.toString());
         return AlertDialog(
           title: const Text('Set Daily Step Goal'),
           content: TextField(
@@ -360,7 +310,7 @@ class _HomePageState extends State<HomePage> {
                 final newGoal = int.tryParse(controller.text) ?? 10000;
 
                 setState(() {
-                  _dailyGoal = newGoal;
+                  dailyGoal = newGoal;
                 });
 
                 final prefs = await SharedPreferences.getInstance();
@@ -375,15 +325,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  int _selectedIndex = 0;
-
-
-  void navigateBottomBar(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
   void _onMoodChanged(double value) {
     setState(() => _moodValue = value);
   }
@@ -396,7 +337,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     
-    final progress = _dailyGoal > 0 ? _steps / _dailyGoal : 0.0;
+    final progress = dailyGoal > 0 ? steps / dailyGoal : 0.0;
 
     return PopScope(
       canPop: false,
@@ -450,7 +391,7 @@ class _HomePageState extends State<HomePage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (_ispermissionGranted)
+                      if (ispermissionGranted)
                         IconButton(
                           icon: const Icon(Icons.settings),
                           onPressed: _showGoalDialog,
@@ -458,13 +399,13 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                 ),
-                if (_isLoading)
+                if (isLoading)
                   const Center(
                     child: CircularProgressIndicator(
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
                     ),
                   )
-                else if (!_ispermissionGranted)
+                else if (!ispermissionGranted)
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -527,8 +468,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                if (_isIntialized &&
-                    _ispermissionGranted) //(_isIntialized && _ispermissionGranted)?
+                if (isIntialized &&
+                    ispermissionGranted) //(_isIntialized && _ispermissionGranted)?
                   //Step Counter Card
                   Padding(
                     padding: EdgeInsets.all(20),
@@ -579,7 +520,7 @@ class _HomePageState extends State<HomePage> {
                                             : Icons.accessibility_new,
                                       ),
                                       Text(
-                                        '$_steps',
+                                        '$steps',
                                         style: TextStyle(
                                           fontSize: 40,
                                           fontWeight: FontWeight.bold,
@@ -587,7 +528,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                       ),
                                       Text(
-                                        " of $_dailyGoal Steps",
+                                        " of $dailyGoal Steps",
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
@@ -630,19 +571,19 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             _buildStatCard(
                               icon: Icons.local_fire_department,
-                              value: _calories.toStringAsFixed(1),
+                              value: calories.toStringAsFixed(1),
                               unit: 'cal',
                               color: Colors.orange,
                             ),
                             _buildStatCard(
                               icon: Icons.straighten,
-                              value: _distance.toStringAsFixed(2),
+                              value: distance.toStringAsFixed(2),
                               unit: 'km',
                               color: Colors.purple,
                             ),
                             _buildStatCard(
                               icon: Icons.timer,
-                              value: (_steps * 0.008).toStringAsFixed(0),
+                              value: (steps * 0.008).toStringAsFixed(0),
                               unit: 'min',
                               color: Colors.teal,
                             ),
@@ -680,7 +621,7 @@ class _HomePageState extends State<HomePage> {
                                 children:
                                     _weeklyData.map((data) {
                                       final height = (data['steps'] /
-                                              _dailyGoal *
+                                              dailyGoal *
                                               100)
                                           .clamp(10.0, 100.0);
 
