@@ -18,7 +18,7 @@ class MyBottomNavBar extends StatefulWidget {
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
   static const Color activeColor = Colors.blue;
-  static const Color inactiveColor = Colors.grey;
+  static const Color inactiveColor = Colors.white;
 
   int _getActiveIndex() {
     if (widget.currentIndex != null) {
