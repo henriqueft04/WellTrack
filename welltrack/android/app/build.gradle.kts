@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -26,6 +28,14 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
+        // Read API key from local.properties
+        val localPropertiesFile = rootProject.file("local.properties")
+        val localProperties = Properties()
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
+        }
+        
+        resValue("string", "google_maps_api_key", localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: "DEFAULT_KEY")
     }
 
     buildTypes {
