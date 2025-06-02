@@ -617,6 +617,213 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
+                if (_isIntialized &&
+                    _ispermissionGranted) //(_isIntialized && _ispermissionGranted)?
+                  //Step Counter Card
+                  Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(30),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blue[400]!, Colors.blue[600]!],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blue.withOpacity(0.5),
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: 200,
+                                    width: 200,
+                                    child: CircularProgressIndicator(
+                                      value: progress.clamp(0.0, 1.0),
+                                      strokeWidth: 12,
+                                      backgroundColor: Colors.white.withOpacity(
+                                        0.3,
+                                      ),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  //infos on the card
+                                  Column(
+                                    children: [
+                                      Icon(
+                                        size: 50,
+                                        color: Colors.white,
+                                        _status == "walking"
+                                            ? Icons.directions_walk
+                                            : Icons.accessibility_new,
+                                      ),
+                                      Text(
+                                        '$_steps',
+                                        style: TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      Text(
+                                        " of $_dailyGoal Steps",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white.withOpacity(0.8),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 20),
+                              //Message Walking/Stopped within blue card
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      _status == "walking"
+                                          ? Colors.green[400]
+                                          : Colors.white.withOpacity(0.5),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  _status == "walking" ? "Walking" : "Stopped",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildStatCard(
+                              icon: Icons.local_fire_department,
+                              value: _calories.toStringAsFixed(1),
+                              unit: 'cal',
+                              color: Colors.orange,
+                            ),
+                            _buildStatCard(
+                              icon: Icons.straighten,
+                              value: _distance.toStringAsFixed(2),
+                              unit: 'km',
+                              color: Colors.purple,
+                            ),
+                            _buildStatCard(
+                              icon: Icons.timer,
+                              value: (_steps * 0.008).toStringAsFixed(0),
+                              unit: 'min',
+                              color: Colors.teal,
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 20),
+                        Container(
+                          padding: EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                blurRadius: 10,
+                                offset: Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Weekly Activity",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children:
+                                    _weeklyData.map((data) {
+                                      final height = (data['steps'] /
+                                              _dailyGoal *
+                                              100)
+                                          .clamp(10.0, 100.0);
+
+                                      final isToday =
+                                          DateFormat('yyyy-MM-dd').format(
+                                            DateTime.parse(data['date']),
+                                          ) ==
+                                          DateFormat(
+                                            'yyyy-MM-dd',
+                                          ).format(DateTime.now());
+
+                                      return Column(
+                                        children: [
+                                          Container(
+                                            width: 30,
+                                            height: height.toDouble(),
+                                            decoration: BoxDecoration(
+                                              gradient:
+                                                  isToday
+                                                      ? LinearGradient(
+                                                        colors: [
+                                                          Colors.blue[400]!,
+                                                          Colors.blue[600]!,
+                                                        ],
+                                                      )
+                                                      : null,
+                                              color:
+                                                  !isToday
+                                                      ? Colors.grey[300]
+                                                      : null,
+                                            ),
+                                          ),
+                                          SizedBox(height: 5),
+                                          Text(
+                                            data['day'],
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight:
+                                                  isToday
+                                                      ? FontWeight.bold
+                                                      : null,
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),
@@ -624,6 +831,40 @@ class _HomePageState extends State<HomePage> {
         bottomNavigationBar: MyBottomNavBar(
           onTabChange: (index) => navigateBottomBar(index),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String value,
+    required String unit,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(15.0),
+      width: MediaQuery.of(context).size.width * 0.25,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 30),
+          SizedBox(height: 10),
+          Text(
+            (value),
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(unit, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        ],
       ),
     );
   }
