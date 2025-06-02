@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
+
 import 'package:welltrack/models/action_card.dart';
 import 'package:welltrack/pages/mental_state_form_page.dart';
+import 'package:welltrack/pages/mental_state_page.dart';
 import 'package:welltrack/pages/journal_selection_page.dart';
 import 'package:welltrack/components/mood_slider.dart';
 
@@ -123,7 +125,6 @@ class _HomePageState extends State<HomePage> {
         }
       },
       child: AppLayout(
-        pageTitle: "Welcome",
         showLogo: true,
         isMainPage: true,
         content: SingleChildScrollView(
@@ -157,9 +158,9 @@ class _HomePageState extends State<HomePage> {
             const Color(0xFFE3F2FD),
             Icons.sentiment_satisfied,
             'State of Mind',
-            'update your state',
+            'update your state333',
             () => MaterialPageRoute(
-              builder: (context) => MentalStateFormPage(selectedDate: _calendarDays[_selectedDayIndex]),
+              builder: (context) => MentalStatePage(),
             ),
           ),
           const SizedBox(height: HomePageConstants.cardSpacing),
@@ -167,7 +168,7 @@ class _HomePageState extends State<HomePage> {
             context,
             _calendarDays,
             _selectedDayIndex,
-            Colors.pink,
+            Colors.pink.shade200,
             const Color(0xFFFCE4EC),
             Icons.bookmark,
             'Journal',

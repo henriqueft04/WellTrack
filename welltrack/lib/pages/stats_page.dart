@@ -38,7 +38,6 @@ class _StatsPageState extends State<StatsPage> {
     const double maxDistance = 6;
 
     return AppLayout(
-      pageTitle: "Your Stats",
       showLogo: true,
       isMainPage: true,
       content: Padding(

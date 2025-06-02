@@ -17,6 +17,9 @@ class MyBottomNavBar extends StatefulWidget {
 }
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
+  static const Color activeColor = Colors.blue;
+  static const Color inactiveColor = Colors.grey;
+
   int _getActiveIndex() {
     if (widget.currentIndex != null) {
       return widget.currentIndex!;
@@ -50,8 +53,6 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = Colors.white;
-    final inactiveColor = Colors.white.withValues(alpha: 0.5);
     final activeIndex = _getActiveIndex();
 
     return CircleNavBar(
