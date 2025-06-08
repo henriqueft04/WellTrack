@@ -10,14 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:welltrack/utils/pedometer_utils.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
-import 'package:welltrack/components/bottom_nav_bar.dart';
-import 'package:welltrack/pages/home_page.dart';
-import 'package:welltrack/pages/stats_page.dart';
-import 'package:welltrack/pages/calendar_page.dart';
-import 'package:welltrack/pages/profile_page.dart';
 
 import 'package:welltrack/models/action_card.dart';
-import 'package:welltrack/pages/mental_state_form_page.dart';
 import 'package:welltrack/pages/mental_state_page.dart';
 import 'package:welltrack/pages/journal_selection_page.dart';
 import 'package:welltrack/components/mood_slider.dart';
@@ -86,7 +80,7 @@ class _HomePageState extends State<HomePage> {
   double distance = 0;
   int dailyGoal = 10000;
 
-  final List<Map<String, dynamic>> _weeklyData = [];
+  List<Map<String, dynamic>> _weeklyData = [];
 
   double _moodValue = 1.0;
   late int _selectedDayIndex;
@@ -129,7 +123,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       isLoading = true;
     });
-    final status = checkActivityPermission();
+    final status = await Permission.activityRecognition.request();
     debugPrint('Permission status: $status');
     setState(() {
       ispermissionGranted = status == PermissionStatus.granted;
@@ -145,11 +139,26 @@ class _HomePageState extends State<HomePage> {
   Future<void> initializeApp() async {
     await _loadDailyData();
     await _loadTodaySteps();
-    pedestrianSubscription = await setupMovementDetection(_handleMovement);
+    _setupMovementDetection();
 
     setState(() {
       isIntialized = true;
     });
+  }
+
+  Future<void> _setupMovementDetection() async {
+    try {
+      pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
+        (PedestrianStatus event) {
+          _handleMovement(event.status);
+        },
+        onError: (error) {
+          print("Error in pedometer stream: $error");
+        },
+      );
+    } catch (e) {
+      print("Error setting up movement detection: $e");
+    }
   }
 
   void _handleMovement(String status) {
@@ -240,6 +249,26 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+    Future<void> _loadWeeklyData() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> weekData = [];
+
+    for (int i = 6; i >= 0; i--) {
+      final date = DateTime.now().subtract(Duration(days: i));
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      final steps = prefs.getInt('steps_$dateStr') ?? 0;
+
+      weekData.add({
+        'date': dateStr,
+        'steps': steps,
+        'day': DateFormat('E').format(date),
+      });
+    }
+    setState(() {
+      _weeklyData = weekData;
+    });
+  }
+
   // calculate calories and distance
   void _calculateMetrics() {
     calories = calculateCalories(steps);
@@ -280,7 +309,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       dailyGoal = prefs.getInt('dailyGoal') ?? 10000;
     });
-    loadWeeklyData();
+    _loadWeeklyData();
   }
 
   void _showGoalDialog() {
