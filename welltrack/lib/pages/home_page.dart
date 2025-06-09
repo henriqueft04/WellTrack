@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:welltrack/providers/stats_provider.dart';
 import 'package:welltrack/utils/pedometer_utils.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
@@ -95,6 +97,7 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToDay(_selectedDayIndex);
     });
+    _checkPermissions();
   }
 
   void _scrollToDay(int index) {
@@ -143,6 +146,11 @@ class _HomePageState extends State<HomePage> {
 
     setState(() {
       isIntialized = true;
+      final userStats = Provider.of<UserStatsProvider>(context, listen: false);
+      userStats.updateSteps(steps);
+      userStats.updateCalories(calories);
+      userStats.updateDistance(distance);
+      userStats.setDailyGoal(dailyGoal);
     });
   }
 

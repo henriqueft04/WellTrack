@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:welltrack/pages/login_page.dart';
+import 'package:welltrack/providers/stats_provider.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/core/injection.dart';
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MentalStateViewModel()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => ProximityProvider()),
+        ChangeNotifierProvider(create: (_) => UserStatsProvider()),
       ],
       child: MaterialApp(
         title: 'WellTrack',
