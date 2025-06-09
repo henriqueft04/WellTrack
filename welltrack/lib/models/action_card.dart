@@ -22,28 +22,31 @@ class StyledActionButton extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: double.infinity,
-        height: 100,
+        constraints: const BoxConstraints(minHeight: 100),
         decoration: BoxDecoration(
           color: background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: color, width: 2),
         ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: color, size: 32),
-              const SizedBox(width: 12),
-              Text(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 32),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
                 label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
+                textAlign: TextAlign.center,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

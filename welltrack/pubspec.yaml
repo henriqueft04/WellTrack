@@ -59,6 +59,7 @@ dependencies:
   intl: ^0.20.2
   shared_preferences: ^2.5.3
   flutter_blue_plus: ^1.35.5
+  vibration: ^2.0.0
 
 dev_dependencies:
   flutter_test:

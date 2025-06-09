@@ -42,6 +42,8 @@ class _NearMePageState extends State<NearMePage> {
               const SizedBox(height: 8),
               Text('Advertising: ${bluetoothProvider.isAdvertising ? "Active" : "Inactive"}'),
               const SizedBox(height: 8),
+              Text('Vibration Alerts: ${bluetoothProvider.isVibrationSupported ? (bluetoothProvider.isVibrationEnabled ? "Enabled" : "Disabled") : "Not Supported"}'),
+              const SizedBox(height: 8),
               Text('Nearby WellTrack Users: ${bluetoothProvider.nearbyUsers.length}'),
               if (bluetoothProvider.error != null) ...[
                 const SizedBox(height: 8),
@@ -277,224 +279,277 @@ class _NearMePageState extends State<NearMePage> {
       ),
       body: Consumer<BluetoothProvider>(
         builder: (context, bluetoothProvider, child) {
-          return Column(
-            children: [
-              // Mood Sharing Toggle
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: SwitchListTile(
-                    title: const Text(
-                      'Share My Mood',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      bluetoothProvider.isMoodSharingEnabled
-                          ? 'Other WellTrack users can see your mood'
-                          : 'Your mood is private',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    value: bluetoothProvider.isMoodSharingEnabled,
-                    onChanged: (value) {
-                      bluetoothProvider.toggleMoodSharing(value);
-                    },
-                    activeColor: Colors.blue,
-                  ),
-                ),
-              ),
-
-              // Simulation Mode Toggle (for testing)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.orange.shade200),
-                  ),
-                  child: SwitchListTile(
-                    title: const Text(
-                      'Demo Mode',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      bluetoothProvider.simulationMode
-                          ? 'Showing mock nearby users for testing'
-                          : 'Real Bluetooth scanning (may not find users due to technical limitations)',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                    value: bluetoothProvider.simulationMode,
-                    onChanged: (value) {
-                      bluetoothProvider.toggleSimulationMode(value);
-                    },
-                    activeColor: Colors.orange,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Register Bluetooth ID Button (only show if not registered)
-              if (!bluetoothProvider.isDeviceRegistered)
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // Mood Sharing Toggle
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: StyledActionButton(
-                    icon: Icons.bluetooth_connected,
-                    label: 'Register My Device for Discovery',
-                    color: Colors.purple.shade700,
-                    background: Colors.purple.shade50,
-                    onTap: () async {
-                      await bluetoothProvider.storeBluetoothDeviceId();
-                    },
+                  padding: const EdgeInsets.all(16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: SwitchListTile(
+                      title: const Text(
+                        'Share My Mood',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        bluetoothProvider.isMoodSharingEnabled
+                            ? 'Other WellTrack users can see your mood'
+                            : 'Your mood is private',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      value: bluetoothProvider.isMoodSharingEnabled,
+                      onChanged: (value) {
+                        bluetoothProvider.toggleMoodSharing(value);
+                      },
+                      activeColor: Colors.blue,
+                    ),
                   ),
                 ),
 
-              // Registration Status (show if registered)
-              if (bluetoothProvider.isDeviceRegistered)
+                // Vibration Alerts Toggle
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Container(
-                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
+                      color: Colors.purple.shade50,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green.shade200),
+                      border: Border.all(color: Colors.purple.shade200),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.check_circle,
-                          color: Colors.green.shade700,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Device Registered!',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.green.shade700,
-                                ),
-                              ),
-                              Text(
-                                'Other WellTrack users can now discover you when you\'re nearby',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.green.shade600,
-                                ),
-                              ),
-                            ],
+                    child: SwitchListTile(
+                      title: Row(
+                        children: [
+                          const Text(
+                            'Vibration Alerts',
+                            style: TextStyle(fontWeight: FontWeight.w600),
                           ),
+                          const SizedBox(width: 8),
+                          if (!bluetoothProvider.isVibrationSupported)
+                            Icon(
+                              Icons.not_interested,
+                              color: Colors.grey.shade500,
+                              size: 16,
+                            ),
+                        ],
+                      ),
+                      subtitle: Text(
+                        bluetoothProvider.isVibrationSupported
+                            ? (bluetoothProvider.isVibrationEnabled
+                                ? 'Get vibration alerts when someone nearby needs support'
+                                : 'Vibration alerts are disabled')
+                            : 'Vibration not supported on this device',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
                         ),
-                      ],
+                      ),
+                      value: bluetoothProvider.isVibrationEnabled && bluetoothProvider.isVibrationSupported,
+                      onChanged: bluetoothProvider.isVibrationSupported
+                          ? (value) {
+                              bluetoothProvider.toggleVibrationAlerts(value);
+                            }
+                          : null,
+                      activeColor: Colors.purple,
                     ),
                   ),
                 ),
 
-              // Status Section
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: StyledActionButton(
-                  icon: bluetoothProvider.isBluetoothOn 
-                      ? Icons.bluetooth 
-                      : Icons.bluetooth_disabled,
-                  label: bluetoothProvider.statusMessage,
-                  color: bluetoothProvider.isBluetoothOn 
-                      ? Colors.blue.shade700 
-                      : Colors.red.shade700,
-                  background: bluetoothProvider.isBluetoothOn 
-                      ? Colors.blue.shade50 
-                      : Colors.red.shade50,
-                  onTap: () => _showBluetoothStatusDetails(bluetoothProvider),
-                ),
-              ),
+                const SizedBox(height: 16),
 
-              // Scan Button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: bluetoothProvider.isLoading
-                    ? Container(
-                        width: double.infinity,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300, width: 2),
-                        ),
-                        child: const Center(
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                              SizedBox(width: 12),
-                              Text('Initializing Bluetooth...'),
-                            ],
-                          ),
-                        ),
-                      )
-                    : StyledActionButton(
-                        icon: bluetoothProvider.isScanning 
-                            ? Icons.stop 
-                            : Icons.search,
-                        label: bluetoothProvider.isScanning 
-                            ? 'Stop Scanning' 
-                            : 'Scan for Nearby Users',
-                        color: bluetoothProvider.canScan 
-                            ? Colors.green.shade700 
-                            : Colors.grey.shade500,
-                        background: bluetoothProvider.canScan 
-                            ? Colors.green.shade50 
-                            : Colors.grey.shade100,
-                        onTap: bluetoothProvider.canScan
-                            ? () {
-                                if (bluetoothProvider.isScanning) {
-                                  bluetoothProvider.stopScan();
-                                } else {
-                                  bluetoothProvider.startScan();
-                                }
-                              }
-                            : () {
-                                if (!bluetoothProvider.isBluetoothOn) {
-                                  _showBluetoothDialog();
-                                }
-                              },
+                // Simulation Mode Toggle (for testing)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.orange.shade200),
+                    ),
+                    child: SwitchListTile(
+                      title: const Text(
+                        'Demo Mode',
+                        style: TextStyle(fontWeight: FontWeight.w600),
                       ),
-              ),
+                      subtitle: Text(
+                        bluetoothProvider.simulationMode
+                            ? 'Showing mock nearby users for testing'
+                            : 'Real Bluetooth scanning (may not find users due to technical limitations)',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 12,
+                        ),
+                      ),
+                      value: bluetoothProvider.simulationMode,
+                      onChanged: (value) {
+                        bluetoothProvider.toggleSimulationMode(value);
+                      },
+                      activeColor: Colors.orange,
+                    ),
+                  ),
+                ),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-              // Nearby Users List
-              Expanded(
-                child: bluetoothProvider.nearbyUsers.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.bluetooth_searching,
-                              size: 64,
-                              color: Colors.grey.shade400,
+                // Register Bluetooth ID Button (only show if not registered)
+                if (!bluetoothProvider.isDeviceRegistered)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: StyledActionButton(
+                      icon: Icons.bluetooth_connected,
+                      label: 'Register My Device for Discovery',
+                      color: Colors.purple.shade700,
+                      background: Colors.purple.shade50,
+                      onTap: () async {
+                        await bluetoothProvider.storeBluetoothDeviceId();
+                      },
+                    ),
+                  ),
+
+                // Registration Status (show if registered)
+                if (bluetoothProvider.isDeviceRegistered)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade50,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green.shade200),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.green.shade700,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Device Registered!',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                                Text(
+                                  'Other WellTrack users can now discover you when you\'re nearby',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.green.shade600,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            Text(
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // Status Section
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: StyledActionButton(
+                    icon: bluetoothProvider.isBluetoothOn 
+                        ? Icons.bluetooth 
+                        : Icons.bluetooth_disabled,
+                    label: bluetoothProvider.statusMessage,
+                    color: bluetoothProvider.isBluetoothOn 
+                        ? Colors.blue.shade700 
+                        : Colors.red.shade700,
+                    background: bluetoothProvider.isBluetoothOn 
+                        ? Colors.blue.shade50 
+                        : Colors.red.shade50,
+                    onTap: () => _showBluetoothStatusDetails(bluetoothProvider),
+                  ),
+                ),
+
+                // Scan Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: bluetoothProvider.isLoading
+                      ? Container(
+                          width: double.infinity,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.grey.shade300, width: 2),
+                          ),
+                          child: const Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                ),
+                                SizedBox(width: 12),
+                                Text('Initializing Bluetooth...'),
+                              ],
+                            ),
+                          ),
+                        )
+                      : StyledActionButton(
+                          icon: bluetoothProvider.isScanning 
+                              ? Icons.stop 
+                              : Icons.search,
+                          label: bluetoothProvider.isScanning 
+                              ? 'Stop Scanning' 
+                              : 'Scan for Nearby Users',
+                          color: bluetoothProvider.canScan 
+                              ? Colors.green.shade700 
+                              : Colors.grey.shade500,
+                          background: bluetoothProvider.canScan 
+                              ? Colors.green.shade50 
+                              : Colors.grey.shade100,
+                          onTap: bluetoothProvider.canScan
+                              ? () {
+                                  if (bluetoothProvider.isScanning) {
+                                    bluetoothProvider.stopScan();
+                                  } else {
+                                    bluetoothProvider.startScan();
+                                  }
+                                }
+                              : () {
+                                  if (!bluetoothProvider.isBluetoothOn) {
+                                    _showBluetoothDialog();
+                                  }
+                                },
+                        ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Nearby Users List
+                if (bluetoothProvider.nearbyUsers.isEmpty)
+                  Container(
+                    height: 300,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.bluetooth_searching,
+                            size: 64,
+                            color: Colors.grey.shade400,
+                          ),
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Text(
                               bluetoothProvider.isScanning
                                   ? 'Scanning for nearby users...'
                                   : 'No nearby WellTrack users found',
@@ -504,9 +559,12 @@ class _NearMePageState extends State<NearMePage> {
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            if (!bluetoothProvider.isScanning && bluetoothProvider.canScan) ...[
-                              const SizedBox(height: 8),
-                              Text(
+                          ),
+                          if (!bluetoothProvider.isScanning && bluetoothProvider.canScan) ...[
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 32),
+                              child: Text(
                                 'Tap "Scan for Nearby Users" to search',
                                 style: TextStyle(
                                   fontSize: 14,
@@ -514,61 +572,67 @@ class _NearMePageState extends State<NearMePage> {
                                 ),
                                 textAlign: TextAlign.center,
                               ),
-                            ],
+                            ),
                           ],
-                        ),
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            child: Text(
-                              'Nearby WellTrack Users (${bluetoothProvider.nearbyUsers.length})',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: bluetoothProvider.nearbyUsers.length,
-                              itemBuilder: (context, index) {
-                                final user = bluetoothProvider.nearbyUsers[index];
-                                return _buildUserCard(user);
-                              },
-                            ),
-                          ),
                         ],
                       ),
-              ),
-
-              // Error Display
-              if (bluetoothProvider.error != null)
-                Container(
-                  width: double.infinity,
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
+                    ),
+                  )
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.error_outline, color: Colors.red.shade700),
-                      const SizedBox(width: 8),
-                      Expanded(
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         child: Text(
-                          bluetoothProvider.error!,
-                          style: TextStyle(color: Colors.red.shade700),
+                          'Nearby WellTrack Users (${bluetoothProvider.nearbyUsers.length})',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                      ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: bluetoothProvider.nearbyUsers.length,
+                        itemBuilder: (context, index) {
+                          final user = bluetoothProvider.nearbyUsers[index];
+                          return _buildUserCard(user);
+                        },
                       ),
                     ],
                   ),
-                ),
-            ],
+
+                // Error Display
+                if (bluetoothProvider.error != null)
+                  Container(
+                    width: double.infinity,
+                    margin: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red.shade700),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            bluetoothProvider.error!,
+                            style: TextStyle(color: Colors.red.shade700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                // Bottom padding for scrolling
+                const SizedBox(height: 100),
+              ],
+            ),
           );
         },
       ),

@@ -6,6 +6,7 @@ import 'package:welltrack/models/bluetooth_user.dart';
 import 'package:welltrack/services/settings_service.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:vibration/vibration.dart';
 
 class BluetoothProvider with ChangeNotifier {
   // Private state variables
@@ -20,6 +21,11 @@ class BluetoothProvider with ChangeNotifier {
   bool _isDeviceRegistered = false;
   String? _error;
   String _statusMessage = 'Initializing...';
+  
+  // Vibration settings
+  bool _isVibrationEnabled = true;
+  bool _isVibrationSupported = false;
+  Set<String> _alertedUsers = <String>{}; // Track users we've already alerted for
   
   // Stream subscriptions
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
@@ -47,6 +53,8 @@ class BluetoothProvider with ChangeNotifier {
   String? get error => _error;
   String get statusMessage => _statusMessage;
   bool get canScan => _isBluetoothSupported && _isBluetoothOn && !_isLoading;
+  bool get isVibrationEnabled => _isVibrationEnabled;
+  bool get isVibrationSupported => _isVibrationSupported;
 
   // Set user provider for accessing profile data
   void setUserProvider(UserProvider userProvider) {
@@ -70,6 +78,10 @@ class BluetoothProvider with ChangeNotifier {
 
       // Load mood sharing setting
       _isMoodSharingEnabled = await SettingsService.isMoodSharingEnabled();
+
+      // Load vibration settings and check support
+      _isVibrationEnabled = await SettingsService.isVibrationAlertsEnabled();
+      _isVibrationSupported = await Vibration.hasVibrator() ?? false;
 
       // Check if device is already registered
       await _checkDeviceRegistration();
@@ -251,6 +263,9 @@ class BluetoothProvider with ChangeNotifier {
     
     if (deviceIds.isNotEmpty) {
       _lookupWellTrackUsers(deviceIds, results);
+    } else {
+      // Clear alerts if no users found
+      _clearStaleAlerts();
     }
   }
 
@@ -266,7 +281,10 @@ class BluetoothProvider with ChangeNotifier {
           .inFilter('bluetooth_device_id', deviceIds)
           .eq('privacy_visible', true); // Only include users who are visible
       
-      if (response.isEmpty) return;
+      if (response.isEmpty) {
+        _clearStaleAlerts();
+        return;
+      }
       
       // Create a map for quick device ID to scan result lookup
       final deviceToScanResult = <String, ScanResult>{};
@@ -292,6 +310,18 @@ class BluetoothProvider with ChangeNotifier {
         );
         
         _nearbyUsers.add(bluetoothUser);
+      }
+      
+      // Clear stale alerts and check for users needing support
+      _clearStaleAlerts();
+      
+      // Check for users with very_unpleasant mental state and trigger alert
+      final usersNeedingSupport = _nearbyUsers
+          .where((user) => user.mentalState == 'very_unpleasant')
+          .toList();
+      
+      if (usersNeedingSupport.isNotEmpty) {
+        await _triggerSupportAlert(usersNeedingSupport);
       }
       
       notifyListeners();
@@ -519,6 +549,7 @@ class BluetoothProvider with ChangeNotifier {
   void _startSimulation() {
     _simulationTimer?.cancel();
     _nearbyUsers.clear();
+    _alertedUsers.clear(); // Clear alerts when starting new simulation
 
     // Create mock nearby users
     final mockUsers = [
@@ -546,6 +577,14 @@ class BluetoothProvider with ChangeNotifier {
         lastUpdate: DateTime.now().subtract(const Duration(seconds: 30)),
         signalStrength: -85,
       ),
+      BluetoothUser(
+        deviceId: 'mock_004',
+        username: 'David Wilson',
+        avatarUrl: null,
+        mentalState: 'very_unpleasant',
+        lastUpdate: DateTime.now().subtract(const Duration(seconds: 15)),
+        signalStrength: -55,
+      ),
     ];
 
     // Add users gradually to simulate discovery
@@ -553,6 +592,13 @@ class BluetoothProvider with ChangeNotifier {
     _simulationTimer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (userIndex < mockUsers.length && _simulationMode && _isScanning) {
         _nearbyUsers.add(mockUsers[userIndex]);
+        
+        // Check if the newly added user needs support
+        final newUser = mockUsers[userIndex];
+        if (newUser.mentalState == 'very_unpleasant') {
+          _triggerSupportAlert([newUser]);
+        }
+        
         userIndex++;
         _setStatusMessage('Found ${_nearbyUsers.length} nearby WellTrack users');
         notifyListeners();
@@ -567,8 +613,59 @@ class BluetoothProvider with ChangeNotifier {
     _simulationTimer?.cancel();
     if (_simulationMode) {
       _nearbyUsers.clear();
+      _alertedUsers.clear(); // Clear alerts when stopping simulation
       notifyListeners();
     }
+  }
+
+  // Toggle vibration alerts setting
+  Future<void> toggleVibrationAlerts(bool enabled) async {
+    _isVibrationEnabled = enabled;
+    await SettingsService.setVibrationAlertsEnabled(enabled);
+    notifyListeners();
+  }
+
+  // Trigger vibration alert for users needing support
+  Future<void> _triggerSupportAlert(List<BluetoothUser> usersNeedingSupport) async {
+    if (!_isVibrationEnabled || !_isVibrationSupported || usersNeedingSupport.isEmpty) {
+      return;
+    }
+
+    try {
+      // Check if any of these users are new (haven't been alerted for yet)
+      final newUsersNeedingSupport = usersNeedingSupport
+          .where((user) => !_alertedUsers.contains(user.deviceId))
+          .toList();
+
+      if (newUsersNeedingSupport.isEmpty) {
+        return; // No new users to alert for
+      }
+
+      // Add new users to alerted set
+      for (final user in newUsersNeedingSupport) {
+        _alertedUsers.add(user.deviceId);
+      }
+
+      // Trigger vibration pattern for support alert
+      // Pattern: short-long-short (SOS-like pattern)
+      await Vibration.vibrate(
+        pattern: [0, 200, 100, 400, 100, 200],
+        intensities: [0, 128, 0, 255, 0, 128],
+      );
+
+      _setStatusMessage(
+        'Alert: ${newUsersNeedingSupport.length} ${newUsersNeedingSupport.length == 1 ? 'person nearby needs' : 'people nearby need'} support!'
+      );
+    } catch (e) {
+      // Vibration failed, but don't show error to user as it's not critical
+      debugPrint('Vibration alert failed: $e');
+    }
+  }
+
+  // Clear alerted users when scanning stops or when users are no longer nearby
+  void _clearStaleAlerts() {
+    final currentDeviceIds = _nearbyUsers.map((user) => user.deviceId).toSet();
+    _alertedUsers.removeWhere((deviceId) => !currentDeviceIds.contains(deviceId));
   }
 
   @override

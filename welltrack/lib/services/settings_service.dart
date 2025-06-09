@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsService {
   static const String _moodSharingKey = 'mood_sharing_enabled';
   static const String _bluetoothNameKey = 'bluetooth_display_name';
+  static const String _vibrationAlertsKey = 'vibration_alerts_enabled';
   
   static SharedPreferences? _preferences;
 
@@ -33,10 +34,22 @@ class SettingsService {
     await _preferences?.setString(_bluetoothNameKey, name);
   }
 
+  // Vibration Alert Settings
+  static Future<bool> isVibrationAlertsEnabled() async {
+    await initialize();
+    return _preferences?.getBool(_vibrationAlertsKey) ?? true; // Default: enabled
+  }
+
+  static Future<void> setVibrationAlertsEnabled(bool enabled) async {
+    await initialize();
+    await _preferences?.setBool(_vibrationAlertsKey, enabled);
+  }
+
   // Clear all settings (for logout)
   static Future<void> clearSettings() async {
     await initialize();
     await _preferences?.remove(_moodSharingKey);
     await _preferences?.remove(_bluetoothNameKey);
+    await _preferences?.remove(_vibrationAlertsKey);
   }
 } 
