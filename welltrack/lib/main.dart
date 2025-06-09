@@ -4,6 +4,7 @@ import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/providers/bluetooth_provider.dart';
+import 'package:welltrack/services/settings_service.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/navigation_service.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
@@ -14,6 +15,9 @@ void main() async {
 
   // Initialize dependency injection
   configureDependencies();
+
+  // Initialize settings service
+  await SettingsService.initialize();
 
   await Supabase.initialize(
     url: 'https://kaekvbykswfrevmsaslt.supabase.co',
@@ -34,12 +38,18 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MentalStateViewModel()),
         ChangeNotifierProvider(create: (context) => UserProvider()),
         ChangeNotifierProvider(create: (context) => ProximityProvider()),
-        ChangeNotifierProvider(create: (context) => BluetoothProvider()),
+        ChangeNotifierProxyProvider<UserProvider, BluetoothProvider>(
+          create: (context) => BluetoothProvider(),
+          update: (context, userProvider, bluetoothProvider) {
+            bluetoothProvider?.setUserProvider(userProvider);
+            return bluetoothProvider!;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'WellTrack',
         debugShowCheckedModeBanner: false,
-        navigatorKey: locate<NavigationService>().navigatorKey, // DI for navigation
+        navigatorKey: locate<NavigationService>().navigatorKey,
         theme: ThemeData(
           primarySwatch: Colors.blue,
           useMaterial3: true,
