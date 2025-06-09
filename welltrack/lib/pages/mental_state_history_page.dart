@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
-import 'package:welltrack/models/mental_state.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:provider/provider.dart';
 
