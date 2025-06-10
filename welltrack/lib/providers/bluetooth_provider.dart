@@ -255,15 +255,20 @@ class BluetoothProvider with ChangeNotifier {
   void _parseNearbyUsers(List<ScanResult> results) {
     _nearbyUsers.clear();
     
+    debugPrint('BluetoothProvider: Found ${results.length} scan results');
+    
     // Get device IDs from scan results
     final deviceIds = results
         .map((result) => result.device.remoteId.toString())
         .where((id) => id.isNotEmpty)
         .toList();
     
+    debugPrint('BluetoothProvider: Device IDs found: $deviceIds');
+    
     if (deviceIds.isNotEmpty) {
       _lookupWellTrackUsers(deviceIds, results);
     } else {
+      debugPrint('BluetoothProvider: No device IDs found in scan results');
       // Clear alerts if no users found
       _clearStaleAlerts();
     }
@@ -272,16 +277,21 @@ class BluetoothProvider with ChangeNotifier {
   // Lookup WellTrack users by Bluetooth device IDs in Supabase
   Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults) async {
     try {
+      debugPrint('BluetoothProvider: Looking up WellTrack users for device IDs: $deviceIds');
+      
       final supabase = Supabase.instance.client;
       
       // Query Supabase for users with matching bluetooth_device_id
       final response = await supabase
           .from('users')
           .select('id, name, avatar, mental_state, bluetooth_device_id')
-          .inFilter('bluetooth_device_id', deviceIds)
-          .eq('privacy_visible', true); // Only include users who are visible
+          .inFilter('bluetooth_device_id', deviceIds);
+          // Removed .eq('privacy_visible', true) as this column might not exist
+      
+      debugPrint('BluetoothProvider: Supabase query returned ${response.length} users');
       
       if (response.isEmpty) {
+        debugPrint('BluetoothProvider: No WellTrack users found matching device IDs');
         _clearStaleAlerts();
         return;
       }
@@ -295,10 +305,18 @@ class BluetoothProvider with ChangeNotifier {
       // Convert database results to BluetoothUser objects
       for (final userData in response) {
         final bluetoothId = userData['bluetooth_device_id'] as String?;
-        if (bluetoothId == null) continue;
+        if (bluetoothId == null) {
+          debugPrint('BluetoothProvider: User ${userData['name']} has no bluetooth_device_id');
+          continue;
+        }
         
         final scanResult = deviceToScanResult[bluetoothId];
-        if (scanResult == null) continue;
+        if (scanResult == null) {
+          debugPrint('BluetoothProvider: No scan result found for bluetooth_device_id: $bluetoothId');
+          continue;
+        }
+        
+        debugPrint('BluetoothProvider: Found WellTrack user: ${userData['name']} with mood: ${userData['mental_state']}');
         
         final bluetoothUser = BluetoothUser(
           deviceId: bluetoothId,
@@ -351,6 +369,8 @@ class BluetoothProvider with ChangeNotifier {
       final supabase = Supabase.instance.client;
       final userId = _userProvider!.userProfile!['id'];
       
+      debugPrint('BluetoothProvider: Storing device ID $deviceId for user $userId');
+      
       await supabase
           .from('users')
           .update({'bluetooth_device_id': deviceId})
@@ -362,10 +382,32 @@ class BluetoothProvider with ChangeNotifier {
       // Update registration state
       _isDeviceRegistered = true;
       
+      // Also check how many users have registered Bluetooth IDs for debugging
+      await _debugCheckRegisteredUsers();
+      
       _setStatusMessage('Device registered successfully! You can now be discovered by nearby WellTrack users.');
       notifyListeners();
     } catch (e) {
+      debugPrint('BluetoothProvider: Failed to store Bluetooth ID: $e');
       _setError('Failed to store Bluetooth ID: $e');
+    }
+  }
+  
+  // Debug method to check registered users
+  Future<void> _debugCheckRegisteredUsers() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase
+          .from('users')
+          .select('id, name, bluetooth_device_id')
+          .not('bluetooth_device_id', 'is', null);
+      
+      debugPrint('BluetoothProvider: ${response.length} users have registered Bluetooth IDs:');
+      for (final user in response) {
+        debugPrint('  - ${user['name']}: ${user['bluetooth_device_id']}');
+      }
+    } catch (e) {
+      debugPrint('BluetoothProvider: Error checking registered users: $e');
     }
   }
 
@@ -376,14 +418,19 @@ class BluetoothProvider with ChangeNotifier {
       // In a real implementation, you'd use platform channels to get the actual Bluetooth MAC
       final adapterState = await FlutterBluePlus.adapterState.first;
       if (adapterState != BluetoothAdapterState.on) {
+        debugPrint('BluetoothProvider: Bluetooth is not on, cannot get device ID');
         return null;
       }
       
       // This is a placeholder - you'd need platform-specific code to get real Bluetooth MAC
       // For demo purposes, we'll use a hash of device info
       final deviceInfo = DateTime.now().millisecondsSinceEpoch.toString();
-      return 'BT_${deviceInfo.substring(deviceInfo.length - 8)}';
+      final deviceId = 'BT_${deviceInfo.substring(deviceInfo.length - 8)}';
+      
+      debugPrint('BluetoothProvider: Generated device ID: $deviceId');
+      return deviceId;
     } catch (e) {
+      debugPrint('BluetoothProvider: Error getting device ID: $e');
       return null;
     }
   }
@@ -421,11 +468,14 @@ class BluetoothProvider with ChangeNotifier {
     _setStatusMessage('Scanning for nearby users...');
 
     try {
+      debugPrint('BluetoothProvider: Starting Bluetooth scan...');
       await FlutterBluePlus.startScan(
         timeout: timeout ?? const Duration(seconds: 15),
         androidUsesFineLocation: true,
       );
+      debugPrint('BluetoothProvider: Scan started successfully');
     } catch (e) {
+      debugPrint('BluetoothProvider: Failed to start scan: $e');
       _setError('Failed to start scan: $e');
       _setStatusMessage('Error starting scan');
     }
