@@ -32,7 +32,8 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
       if (routeName.contains('MapPage')) return 1;
       if (routeName.contains('CalendarPage')) return 2;
       if (routeName.contains('StatsPage')) return 3;
-      if (routeName.contains('ProfilePage')) return 4;
+      if (routeName.contains('NearMePage')) return 4;
+      if (routeName.contains('ProfilePage')) return 5;
     }
 
     context.visitAncestorElements((element) {
@@ -43,6 +44,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
       if (elementType.contains('MapPage')) return false;
       if (elementType.contains('CalendarPage')) return false;
       if (elementType.contains('StatsPage')) return false;
+      if (elementType.contains('NearMePage')) return false;
       if (elementType.contains('ProfilePage')) return false;
       
       return true;
@@ -61,6 +63,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
         Icon(Icons.map, color: activeColor),
         Icon(Icons.calendar_today, color: activeColor),
         Icon(Icons.fitness_center, color: activeColor),
+        Icon(Icons.bluetooth, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
       inactiveIcons: [
@@ -68,6 +71,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
         Icon(Icons.map, color: inactiveColor),
         Icon(Icons.calendar_today, color: inactiveColor),
         Icon(Icons.fitness_center, color: inactiveColor),
+        Icon(Icons.bluetooth, color: inactiveColor),
         Icon(Icons.person, color: inactiveColor),
       ],
       color: const Color(0xFF9CD0FF),

@@ -61,6 +61,8 @@ dependencies:
   record: ^5.1.2
   audioplayers: ^6.1.0
   speech_to_text: ^7.0.0
+  flutter_blue_plus: ^1.35.5
+  vibration: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -10,14 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:welltrack/utils/pedometer_utils.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
-import 'package:welltrack/components/bottom_nav_bar.dart';
-import 'package:welltrack/pages/home_page.dart';
-import 'package:welltrack/pages/stats_page.dart';
-import 'package:welltrack/pages/calendar_page.dart';
-import 'package:welltrack/pages/profile_page.dart';
 
 import 'package:welltrack/models/action_card.dart';
-import 'package:welltrack/pages/mental_state_form_page.dart';
 import 'package:welltrack/pages/mental_state_page.dart';
 import 'package:welltrack/pages/journal_selection_page.dart';
 import 'package:welltrack/components/mood_slider.dart';
@@ -265,9 +259,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _loadTodaySteps() async {
     final prefs = await SharedPreferences.getInstance();
     final today = getDateKey();
-    final _lastDate = prefs.getString('lastDate') ?? '';
+    final lastDate = prefs.getString('lastDate') ?? '';
 
-    if (_lastDate == today) {
+    if (lastDate == today) {
       setState(() {
         todaySteps = prefs.getInt('steps_$today') ?? 0;
         steps = todaySteps;

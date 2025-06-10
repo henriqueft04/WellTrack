@@ -200,7 +200,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return NonMainPageWrapper(
-      originIndex: 4,
+      originIndex: 5,
       child: AppLayout(
         pageTitle: 'Edit Profile',
         showLogo: false,

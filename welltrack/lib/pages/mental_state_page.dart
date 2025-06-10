@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/models/action_card.dart';
 import 'package:welltrack/pages/mental_state_form_page.dart';
-import 'package:welltrack/pages/journal_selection_page.dart';
 import 'package:welltrack/pages/mental_state_history_page.dart';
 import 'package:provider/provider.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
