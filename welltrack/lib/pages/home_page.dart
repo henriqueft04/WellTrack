@@ -85,7 +85,6 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, dynamic>> _weeklyData = [];
 
-  bool hasNotified = false; // evita notificações duplicadas
 
   double _moodValue = 1.0;
   late int _selectedDayIndex;
@@ -111,7 +110,6 @@ class _HomePageState extends State<HomePage> {
       _checkPermissions();
       askNotificationPermission();
 
-      userStats.addListener(_checkStepGoalFromProvider);
     });
   }
 
@@ -122,19 +120,6 @@ class _HomePageState extends State<HomePage> {
       await Permission.notification.request();
     }
   }
-
-  // Check if the user has reached their daily step goal
-  void _checkStepGoalFromProvider() {
-
-    if (userStats.steps >= userStats.dailyGoal && !hasNotified) {
-      NotiService().showNotification(
-        title: '🎉 Step Goal Reached!',
-        body: 'You have reached your daily step goal! Great job! 💪',
-      );
-      hasNotified = true;
-    }
-  }
-
 
   void _scrollToDay(int index) {
     // Each item is 60 width + 16 margin (8 left, 8 right)
@@ -153,8 +138,6 @@ class _HomePageState extends State<HomePage> {
     pedestrianSubscription?.cancel();
     stepTimer?.cancel();
     sessionTimer?.cancel();
-    final statsProvider = Provider.of<UserStatsProvider>(context, listen: false);
-    statsProvider.removeListener(_checkStepGoalFromProvider);
     super.dispose();
   }
 
@@ -186,10 +169,10 @@ class _HomePageState extends State<HomePage> {
       isIntialized = true;
     });
 
+    userStats.setDailyGoal(dailyGoal);
     userStats.updateSteps(steps);
     userStats.updateCalories(calories);
     userStats.updateDistance(distance);
-    userStats.setDailyGoal(dailyGoal);
   }
 
 
@@ -198,6 +181,7 @@ class _HomePageState extends State<HomePage> {
       pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
         (PedestrianStatus event) {
           _handleMovement(event.status);
+          userStats.updateSteps(steps); // para notificar o provider
         },
         onError: (error) {
           print("Error in pedometer stream: $error");
@@ -354,6 +338,7 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       dailyGoal = prefs.getInt('dailyGoal') ?? 10000;
+      userStats.setDailyGoal(dailyGoal);
     });
     _loadWeeklyData();
   }
@@ -386,6 +371,7 @@ class _HomePageState extends State<HomePage> {
 
                 setState(() {
                   dailyGoal = newGoal;
+                  userStats.setDailyGoal(newGoal);
                 });
 
                 final prefs = await SharedPreferences.getInstance();
