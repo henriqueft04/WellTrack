@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -21,11 +23,19 @@ android {
 
     defaultConfig {
         applicationId = "com.example.welltrack"
-        minSdk = 21 // Minimum required for Google Sign In
+        minSdk = 23 // Minimum required for audio recording and Google Sign In
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
 
+        // Read API key from local.properties
+        val localPropertiesFile = rootProject.file("local.properties")
+        val localProperties = Properties()
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProperties.load(it) }
+        }
+        
+        resValue("string", "google_maps_api_key", localProperties.getProperty("GOOGLE_MAPS_API_KEY") ?: "DEFAULT_KEY")
     }
 
     buildTypes {

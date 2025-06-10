@@ -13,6 +13,7 @@ class LoginPage extends StatefulWidget {
 
   @override
   State<LoginPage> createState() => _LoginPageState();
+
 }
 
 class _LoginPageState extends State<LoginPage> {
@@ -96,10 +97,6 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     }
-  }
-
-  Future<void> _handleSignOut() async {
-    await supabase.auth.signOut();
   }
 
   Widget googleSignInButton() {

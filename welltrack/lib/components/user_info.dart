@@ -40,20 +40,29 @@ class UserInfo extends StatelessWidget {
         }
 
         final userProfile = userProvider.userProfile;
+        final avatarUrl = userProfile?['avatar'];
+        
+        // Check if avatar URL is valid and not a placeholder
+        bool hasValidAvatar = avatarUrl != null && 
+                             avatarUrl.isNotEmpty && 
+                             !avatarUrl.contains('placeholder.com') &&
+                             !avatarUrl.contains('via.placeholder');
 
         return Column(
           children: [
             CircleAvatar(
               radius: 50,
-              backgroundImage:
-                  userProfile?['avatar'] != null
-                      ? NetworkImage(userProfile!['avatar'])
-                      : const AssetImage('lib/images/profile_photo.png')
-                          as ImageProvider,
-              child:
-                  userProfile?['avatar'] == null
-                      ? const Icon(Icons.person, size: 50, color: Colors.grey)
-                      : null,
+              backgroundImage: hasValidAvatar
+                  ? NetworkImage(avatarUrl)
+                  : const AssetImage('lib/images/profile_photo.png')
+                      as ImageProvider,
+              onBackgroundImageError: hasValidAvatar ? (exception, stackTrace) {
+                // Handle network image loading errors gracefully
+                debugPrint('Error loading avatar image: $exception');
+              } : null,
+              child: !hasValidAvatar
+                  ? const Icon(Icons.person, size: 50, color: Colors.grey)
+                  : null,
             ),
             const SizedBox(height: 16),
             Text(

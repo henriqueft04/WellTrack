@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/bottom_nav_bar.dart';
 import 'package:welltrack/pages/home_page.dart';
-import 'package:welltrack/pages/journal_page.dart';
+import 'package:welltrack/pages/map.dart';
 import 'package:welltrack/pages/calendar_page.dart';
 import 'package:welltrack/pages/stats_page.dart';
 import 'package:welltrack/pages/profile_page.dart';
+import 'package:welltrack/pages/near_me_page.dart';
 
 class MainNavigation extends StatefulWidget {
   final int initialIndex;
@@ -29,9 +30,10 @@ class _MainNavigationState extends State<MainNavigation> {
 
   List<Widget> get _pages => [
     const HomePage(),
-    const JournalPage(),
+    const MapPage(),
     const CalendarPage(),
     const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5),
+    const NearMePage(),
     const ProfilePage(),
   ];
 
@@ -64,7 +66,7 @@ class MainPageWrapper extends StatelessWidget {
           targetPage = const HomePage();
           break;
         case 1:
-          targetPage = const JournalPage();
+          targetPage = const MapPage();
           break;
         case 2:
           targetPage = const CalendarPage();
@@ -73,6 +75,9 @@ class MainPageWrapper extends StatelessWidget {
           targetPage = const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5);
           break;
         case 4:
+          targetPage = const NearMePage();
+          break;
+        case 5:
           targetPage = const ProfilePage();
           break;
         default:
@@ -94,10 +99,11 @@ class MainPageWrapper extends StatelessWidget {
   // Helper method to determine current index from child type
   int _getCurrentIndexFromChild() {
     if (child is HomePage) return 0;
-    if (child is JournalPage) return 1;
+    if (child is MapPage) return 1;
     if (child is CalendarPage) return 2;
     if (child is StatsPage) return 3;
-    if (child is ProfilePage) return 4;
+    if (child is NearMePage) return 4;
+    if (child is ProfilePage) return 5;
     return currentIndex; // fallback to provided index
   }
 

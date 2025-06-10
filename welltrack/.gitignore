@@ -18,10 +18,15 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# Security: API Keys and sensitive files
+.env
+*.env
+android/local.properties
+ios/Runner/Info.plist
+google_maps_api_key.txt
+
 # MacOS
-
 ../.DS_Store
-
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -31,6 +36,9 @@ migrate_working_dir/
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
+**/ios/Flutter/.last_build_id
+*.xcconfig
+
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies

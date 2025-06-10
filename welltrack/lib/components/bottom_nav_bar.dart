@@ -17,6 +17,9 @@ class MyBottomNavBar extends StatefulWidget {
 }
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
+  static const Color activeColor = Colors.blue;
+  static const Color inactiveColor = Colors.white;
+
   int _getActiveIndex() {
     if (widget.currentIndex != null) {
       return widget.currentIndex!;
@@ -26,10 +29,11 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
     if (modalRoute?.settings.name != null) {
       final routeName = modalRoute!.settings.name!;
       if (routeName.contains('HomePage')) return 0;
-      if (routeName.contains('JournalPage')) return 1;
+      if (routeName.contains('MapPage')) return 1;
       if (routeName.contains('CalendarPage')) return 2;
       if (routeName.contains('StatsPage')) return 3;
-      if (routeName.contains('ProfilePage')) return 4;
+      if (routeName.contains('NearMePage')) return 4;
+      if (routeName.contains('ProfilePage')) return 5;
     }
 
     context.visitAncestorElements((element) {
@@ -37,9 +41,10 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
       final elementType = elementWidget.runtimeType.toString();
       
       if (elementType.contains('HomePage')) return false;
-      if (elementType.contains('JournalPage')) return false;
+      if (elementType.contains('MapPage')) return false;
       if (elementType.contains('CalendarPage')) return false;
       if (elementType.contains('StatsPage')) return false;
+      if (elementType.contains('NearMePage')) return false;
       if (elementType.contains('ProfilePage')) return false;
       
       return true;
@@ -50,23 +55,23 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = Colors.white;
-    final inactiveColor = Colors.white.withValues(alpha: 0.5);
     final activeIndex = _getActiveIndex();
 
     return CircleNavBar(
       activeIcons: const [
         Icon(Icons.home, color: activeColor),
-        Icon(Icons.book, color: activeColor),
+        Icon(Icons.map, color: activeColor),
         Icon(Icons.calendar_today, color: activeColor),
         Icon(Icons.fitness_center, color: activeColor),
+        Icon(Icons.bluetooth, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
       inactiveIcons: [
         Icon(Icons.home, color: inactiveColor),
-        Icon(Icons.book, color: inactiveColor),
+        Icon(Icons.map, color: inactiveColor),
         Icon(Icons.calendar_today, color: inactiveColor),
         Icon(Icons.fitness_center, color: inactiveColor),
+        Icon(Icons.bluetooth, color: inactiveColor),
         Icon(Icons.person, color: inactiveColor),
       ],
       color: const Color(0xFF9CD0FF),

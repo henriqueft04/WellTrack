@@ -60,5 +60,39 @@
 		</dict>
 	</array>
 	<!-- End of the Google Sign-in Section -->
+	
+	<!-- Camera and Photo Library Permissions -->
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to camera to take photos for your journal</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select photos for your journal</string>
+	<!-- End of Camera and Photo Library Permissions -->
+	
+	<!-- Microphone Permission -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone to record audio journal entries</string>
+	<!-- End of Microphone Permission -->
+	
+	<!-- Speech Recognition Permission -->
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app needs access to speech recognition to transcribe your audio journal entries</string>
+	<!-- End of Speech Recognition Permission -->
+
+	<!-- Location Permissions -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location to show nearby users</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location to show nearby users</string>
+	<!-- End of Location Permissions -->
+
+	<!-- Bluetooth Permissions -->
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>This app uses Bluetooth to discover and connect with nearby WellTrack users</string>
+	<!-- End of Bluetooth Permissions -->
+
+	<!-- Google Maps API Key -->
+	<key>GOOGLE_MAPS_API_KEY</key>
+	<string>AIzaSyDCy7pahiBO2Sz0FleRE2R8iaxVl76JRoQ</string>
+	<!-- End of Google Maps API Key -->
 	</dict>
 </plist>

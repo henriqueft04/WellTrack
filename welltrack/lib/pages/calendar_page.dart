@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:welltrack/components/app_layout.dart';
-import 'journal_page.dart';
+import 'package:welltrack/pages/journal_selection_page.dart';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -44,7 +44,11 @@ class _CalendarPageState extends State<CalendarPage> {
       // Vai para a página do Journal
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const JournalPage()),
+        MaterialPageRoute(
+          builder: (context) => JournalSelectionPage(
+            selectedDate: selectedDay,
+          ),
+        ),
       );
     }
   }
@@ -52,7 +56,6 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   Widget build(BuildContext context) {
     return AppLayout(
-      pageTitle: "Calendar",
       showLogo: true,
       isMainPage: true,
       content: Padding(
