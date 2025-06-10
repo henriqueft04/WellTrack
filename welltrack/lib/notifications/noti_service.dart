@@ -3,7 +3,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 class NotiService {
   final notificationPlugin = FlutterLocalNotificationsPlugin();
 
-  final bool _isInitialized = false;
+  var _isInitialized = false;
 
   bool get isInitialized => _isInitialized;
 
@@ -30,6 +30,7 @@ class NotiService {
 
     // finally, initialize the plugin!
     await notificationPlugin.initialize(initSettings);
+    _isInitialized = true;
   }
 
 
@@ -42,6 +43,7 @@ NotificationDetails notificationDetails() {
       channelDescription: 'Daily Notification Channel',
       importance: Importance.max,
       priority: Priority.high,
+      playSound: true,
     ), // AndroidNotificationDetails
     iOS: DarwinNotificationDetails(),
   ); // NotificationDetails
@@ -59,9 +61,10 @@ NotificationDetails notificationDetails() {
       id,
       title,
       body,
-      const NotificationDetails(),
+      notificationDetails(), // ✅ Usa os detalhes reais
     );
   }
+
 
 
 }

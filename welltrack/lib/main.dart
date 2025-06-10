@@ -9,6 +9,7 @@ import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/navigation_service.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

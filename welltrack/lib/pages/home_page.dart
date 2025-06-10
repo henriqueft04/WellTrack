@@ -102,6 +102,14 @@ class _HomePageState extends State<HomePage> {
       _scrollToDay(_selectedDayIndex);
     });
     _checkPermissions();
+    askNotificationPermission();
+  }
+
+  Future<void> askNotificationPermission() async {
+    var status = await Permission.notification.status;
+    if (!status.isGranted) {
+      await Permission.notification.request();
+    }
   }
 
   void _scrollToDay(int index) {
