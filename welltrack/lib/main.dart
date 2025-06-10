@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:welltrack/notifications/noti_service.dart';
 import 'package:welltrack/pages/login_page.dart';
+import 'package:welltrack/providers/stats_provider.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/providers/bluetooth_provider.dart';
@@ -12,6 +14,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // init notifications
+  NotiService().initNotification();
 
   // Initialize dependency injection
   configureDependencies();
@@ -45,6 +50,7 @@ class MyApp extends StatelessWidget {
             return bluetoothProvider!;
           },
         ),
+        ChangeNotifierProvider(create: (_) => UserStatsProvider()),
       ],
       child: MaterialApp(
         title: 'WellTrack',

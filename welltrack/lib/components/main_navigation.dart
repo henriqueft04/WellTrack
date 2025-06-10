@@ -32,8 +32,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const HomePage(),
     const MapPage(),
     const CalendarPage(),
-    const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5),
-    const NearMePage(),
+    const StatsPage(),
     const ProfilePage(),
   ];
 
@@ -72,7 +71,7 @@ class MainPageWrapper extends StatelessWidget {
           targetPage = const CalendarPage();
           break;
         case 3:
-          targetPage = const StatsPage(steps: 12212.0, calories: 210.0, distance: 2.5);
+          targetPage = const StatsPage();
           break;
         case 4:
           targetPage = const NearMePage();

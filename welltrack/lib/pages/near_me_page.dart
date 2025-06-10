@@ -535,7 +535,7 @@ class _NearMePageState extends State<NearMePage> {
 
                 // Nearby Users List
                 if (bluetoothProvider.nearbyUsers.isEmpty)
-                  Container(
+                  SizedBox(
                     height: 300,
                     child: Center(
                       child: Column(

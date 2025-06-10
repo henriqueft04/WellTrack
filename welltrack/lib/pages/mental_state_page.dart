@@ -53,7 +53,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
               icon: Icons.sentiment_satisfied,
               label: 'State of Mind',
               color: Colors.lightBlue,
-              background: Colors.lightBlue.withOpacity(0.1),
+              background: Colors.lightBlue,
               onTap: () {
                 Navigator.push(
                   context,
@@ -68,7 +68,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
               icon: Icons.history,
               label: 'View History',
               color: Colors.purple,
-              background: Colors.purple.withOpacity(0.1),
+              background: Colors.purple,
               onTap: () {
                 Navigator.push(
                   context,

@@ -47,7 +47,7 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
   
   // Language settings
   String _selectedLocale = 'en_US'; // Default to English US
-  List<Map<String, String>> _availableLocales = [
+  final List<Map<String, String>> _availableLocales = [
     {'id': 'en_US', 'name': 'English (US)'},
     {'id': 'en_GB', 'name': 'English (UK)'},
     {'id': 'pt_PT', 'name': 'Português (Portugal)'},

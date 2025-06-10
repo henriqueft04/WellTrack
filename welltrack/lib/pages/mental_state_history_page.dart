@@ -114,7 +114,7 @@ class _MentalStateHistoryPageState extends State<MentalStateHistoryPage> {
                             children: state.emotions!.map((emotion) {
                               return Chip(
                                 label: Text(emotion),
-                                backgroundColor: Colors.lightBlue.withOpacity(0.2),
+                                backgroundColor: Colors.lightBlue,
                                 labelStyle: const TextStyle(color: Colors.blue),
                               );
                             }).toList(),
@@ -128,7 +128,7 @@ class _MentalStateHistoryPageState extends State<MentalStateHistoryPage> {
                             children: state.factors!.map((factor) {
                               return Chip(
                                 label: Text(factor),
-                                backgroundColor: Colors.pink.withOpacity(0.2),
+                                backgroundColor: Colors.pink,
                                 labelStyle: const TextStyle(color: Colors.pink),
                               );
                             }).toList(),

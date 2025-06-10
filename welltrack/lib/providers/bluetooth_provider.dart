@@ -11,7 +11,7 @@ import 'package:vibration/vibration.dart';
 class BluetoothProvider with ChangeNotifier {
   // Private state variables
   List<ScanResult> _scanResults = [];
-  List<BluetoothUser> _nearbyUsers = [];
+  final List<BluetoothUser> _nearbyUsers = [];
   bool _isScanning = false;
   bool _isAdvertising = false;
   bool _isBluetoothOn = false;
@@ -25,7 +25,7 @@ class BluetoothProvider with ChangeNotifier {
   // Vibration settings
   bool _isVibrationEnabled = true;
   bool _isVibrationSupported = false;
-  Set<String> _alertedUsers = <String>{}; // Track users we've already alerted for
+  final Set<String> _alertedUsers = <String>{}; // Track users we've already alerted for
   
   // Stream subscriptions
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;

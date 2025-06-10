@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:welltrack/providers/stats_provider.dart';
 import 'package:welltrack/utils/pedometer_utils.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/calendar.dart';
@@ -25,7 +27,7 @@ class HomePageConstants {
   static const double iconSize = 40.0;
   static const double cardSpacing = 16.0;
   static const double bottomSpacing = 24.0;
-  
+
   // Updated colors
   static const Color primaryColor = Color(0xFF4A90E2);
   static const Color secondaryColor = Color(0xFF6B7C93);
@@ -35,14 +37,14 @@ class HomePageConstants {
   static const Color accentColor = Color(0xFF4A90E2);
   static const Color sliderActiveColor = Color(0xFF4A90E2);
   static const Color sliderInactiveColor = Color(0xFFE0E0E0);
-  
+
   // Gradients
   static const LinearGradient primaryGradient = LinearGradient(
     colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
-  
+
   static const LinearGradient cardGradient = LinearGradient(
     colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
     begin: Alignment.topLeft,
@@ -81,7 +83,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   double distance = 0;
   int dailyGoal = 10000;
 
-  final List<Map<String, dynamic>> _weeklyData = [];
+  List<Map<String, dynamic>> _weeklyData = [];
+
 
   double _moodValue = 1.0;
   late int _selectedDayIndex;
@@ -91,15 +94,28 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final MentalStateService _mentalStateService = MentalStateService();
   Timer? _moodSaveTimer;
 
+  late UserStatsProvider userStats;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _calendarDays = List.generate(11, (i) => DateTime.now().subtract(Duration(days: 5 - i)));
     _selectedDayIndex = 5; // Today is at index 5
+    userStats = Provider.of<UserStatsProvider>(context, listen: false);
+
+    _calendarDays = List.generate(
+      11,
+      (i) => DateTime.now().subtract(Duration(days: 5 - i)),
+    );
+    _selectedDayIndex = 5;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToDay(_selectedDayIndex);
+      _checkPermissions();
+      askNotificationPermission();
       _loadLatestMood();
+
     });
   }
   
@@ -108,6 +124,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Reload mood when app comes back to foreground
       _loadLatestMood();
+    }
+  }
+
+  // Request notification permission
+  Future<void> askNotificationPermission() async {
+    var status = await Permission.notification.status;
+    if (!status.isGranted) {
+      await Permission.notification.request();
     }
   }
 
@@ -139,7 +163,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     setState(() {
       isLoading = true;
     });
-    final status = checkActivityPermission();
+    final status = await Permission.activityRecognition.request();
     debugPrint('Permission status: $status');
     setState(() {
       ispermissionGranted = status == PermissionStatus.granted;
@@ -154,12 +178,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Future<void> initializeApp() async {
     await _loadDailyData();
-    await _loadTodaySteps();
-    pedestrianSubscription = await setupMovementDetection(_handleMovement);
+    await _loadTodaySteps(); // se possível retornar os steps aqui
+    _setupMovementDetection();
 
     setState(() {
       isIntialized = true;
     });
+
+    userStats.setDailyGoal(dailyGoal);
+    userStats.updateSteps(steps);
+    userStats.updateCalories(calories);
+    userStats.updateDistance(distance);
+  }
+
+
+  Future<void> _setupMovementDetection() async {
+    try {
+      pedestrianSubscription = Pedometer.pedestrianStatusStream.listen(
+        (PedestrianStatus event) {
+          _handleMovement(event.status);
+          userStats.updateSteps(steps); // para notificar o provider
+        },
+        onError: (error) {
+          print("Error in pedometer stream: $error");
+        },
+      );
+    } catch (e) {
+      print("Error setting up movement detection: $e");
+    }
   }
 
   void _handleMovement(String status) {
@@ -229,25 +275,44 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void _startSessionPatterns() {
-    sessionTimer = Timer.periodic(
-      Duration(seconds: 15 + random.nextInt(30)),
-      (timer) {
-        if (!isWalking) {
-          timer.cancel();
-          return;
-        }
+    sessionTimer = Timer.periodic(Duration(seconds: 15 + random.nextInt(30)), (
+      timer,
+    ) {
+      if (!isWalking) {
+        timer.cancel();
+        return;
+      }
 
-        if (random.nextDouble() < 0.2) {
-          stepTimer?.cancel();
+      if (random.nextDouble() < 0.2) {
+        stepTimer?.cancel();
 
-          Timer(Duration(seconds: 1 + random.nextInt(3)), () {
-            if (isWalking) {
-              _startStepCounting();
-            }
-          });
-        }
-      },
-    );
+        Timer(Duration(seconds: 1 + random.nextInt(3)), () {
+          if (isWalking) {
+            _startStepCounting();
+          }
+        });
+      }
+    });
+  }
+
+  Future<void> _loadWeeklyData() async {
+    final prefs = await SharedPreferences.getInstance();
+    List<Map<String, dynamic>> weekData = [];
+
+    for (int i = 6; i >= 0; i--) {
+      final date = DateTime.now().subtract(Duration(days: i));
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      final steps = prefs.getInt('steps_$dateStr') ?? 0;
+
+      weekData.add({
+        'date': dateStr,
+        'steps': steps,
+        'day': DateFormat('E').format(date),
+      });
+    }
+    setState(() {
+      _weeklyData = weekData;
+    });
   }
 
   // calculate calories and distance
@@ -289,8 +354,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       dailyGoal = prefs.getInt('dailyGoal') ?? 10000;
+      userStats.setDailyGoal(dailyGoal);
     });
-    loadWeeklyData();
+    _loadWeeklyData();
   }
 
   void _showGoalDialog() {
@@ -321,6 +387,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
                 setState(() {
                   dailyGoal = newGoal;
+                  userStats.setDailyGoal(newGoal);
                 });
 
                 final prefs = await SharedPreferences.getInstance();
@@ -389,7 +456,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    
     final progress = dailyGoal > 0 ? steps / dailyGoal : 0.0;
 
     return PopScope(
@@ -399,24 +465,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           Navigator.of(context).pop();
           return;
         }
-        
+
         // Show confirmation dialog before exiting app only if this is the root
         final shouldExit = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Exit App'),
-            content: const Text('Are you sure you want to exit the app?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Exit App'),
+                content: const Text('Are you sure you want to exit the app?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Exit'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Exit'),
-              ),
-            ],
-          ),
         );
         if (shouldExit ?? false) {
           SystemNavigator.pop();
@@ -727,9 +794,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         ),
                       ],
                     ),
-                ),
+                  ),
                 const SizedBox(height: 24),
-                buildCalendar(context, _calendarDays, _selectedDayIndex, _onDayTapped, _calendarScrollController),
+                buildCalendar(
+                  context,
+                  _calendarDays,
+                  _selectedDayIndex,
+                  _onDayTapped,
+                  _calendarScrollController,
+                ),
                 const SizedBox(height: HomePageConstants.bottomSpacing),
                 _buildActionCards(),
               ],
@@ -754,9 +827,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             Icons.sentiment_satisfied,
             'State of Mind',
             'update your state333',
-            () => MaterialPageRoute(
-              builder: (context) => MentalStatePage(),
-            ),
+            () => MaterialPageRoute(builder: (context) => MentalStatePage()),
           ),
           const SizedBox(height: HomePageConstants.cardSpacing),
           buildActionCard(
@@ -769,7 +840,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             'Journal',
             'create a journal entry',
             () => MaterialPageRoute(
-              builder: (context) => JournalSelectionPage(selectedDate: _calendarDays[_selectedDayIndex]),
+              builder:
+                  (context) => JournalSelectionPage(
+                    selectedDate: _calendarDays[_selectedDayIndex],
+                  ),
             ),
           ),
         ],

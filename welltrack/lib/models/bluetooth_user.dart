@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:welltrack/utils/mood_utils.dart';
 
 class BluetoothUser {
