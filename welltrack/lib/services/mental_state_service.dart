@@ -22,6 +22,21 @@ class MentalStateService {
     await _db.insertMentalState(entry.toMap());
   }
 
+  Future<void> saveQuickMood({
+    required DateTime date,
+    required double moodValue,
+  }) async {
+    final entry = MentalState(
+      id: 0,
+      state: moodValue,
+      date: date,
+      emotions: {},
+      factors: {},
+    );
+
+    await _db.insertMentalState(entry.toMap());
+  }
+
   Future<List<MentalState>> getMentalStatesForDate(DateTime date) async {
     final results = await _db.queryAllMentalStates();
     final filtered = results.where((row) {
@@ -32,7 +47,22 @@ class MentalStateService {
              rowDate.day == date.day;
     }).toList(); // Convert filtered results to a list
 
-    return filtered.map((row) => MentalState.fromMap(row)).toList();
+    // Sort by date to ensure we get the most recent first
+    final mentalStates = filtered.map((row) => MentalState.fromMap(row)).toList();
+    mentalStates.sort((a, b) => a.date.compareTo(b.date));
+    
+    return mentalStates;
+  }
+  
+  Future<MentalState?> getLatestMentalState() async {
+    final results = await _db.queryAllMentalStates();
+    if (results.isEmpty) return null;
+    
+    // Sort by date descending and get the first one
+    final sorted = results.map((row) => MentalState.fromMap(row)).toList();
+    sorted.sort((a, b) => b.date.compareTo(a.date));
+    
+    return sorted.first;
   }
 
   Future<List<MentalState>> getAllMentalStates() async {

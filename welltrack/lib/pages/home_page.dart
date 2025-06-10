@@ -21,6 +21,7 @@ import 'package:welltrack/pages/mental_state_form_page.dart';
 import 'package:welltrack/pages/mental_state_page.dart';
 import 'package:welltrack/pages/journal_selection_page.dart';
 import 'package:welltrack/components/mood_slider.dart';
+import 'package:welltrack/services/mental_state_service.dart';
 
 // Constants
 class HomePageConstants {
@@ -62,7 +63,7 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   //To Pedometer
   StreamSubscription<PedestrianStatus>? pedestrianSubscription;
   Timer? stepTimer;
@@ -92,15 +93,28 @@ class _HomePageState extends State<HomePage> {
   late int _selectedDayIndex;
   late List<DateTime> _calendarDays;
   final ScrollController _calendarScrollController = ScrollController();
+  
+  final MentalStateService _mentalStateService = MentalStateService();
+  Timer? _moodSaveTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _calendarDays = List.generate(11, (i) => DateTime.now().subtract(Duration(days: 5 - i)));
     _selectedDayIndex = 5; // Today is at index 5
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToDay(_selectedDayIndex);
+      _loadLatestMood();
     });
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Reload mood when app comes back to foreground
+      _loadLatestMood();
+    }
   }
 
   void _scrollToDay(int index) {
@@ -117,9 +131,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     pedestrianSubscription?.cancel();
     stepTimer?.cancel();
     sessionTimer?.cancel();
+    _moodSaveTimer?.cancel();
     super.dispose();
   }
 
@@ -327,6 +343,49 @@ class _HomePageState extends State<HomePage> {
 
   void _onMoodChanged(double value) {
     setState(() => _moodValue = value);
+    
+    // Cancel any existing timer
+    _moodSaveTimer?.cancel();
+    
+    // Start a new timer to save after 1 second of no changes
+    _moodSaveTimer = Timer(const Duration(seconds: 1), () {
+      _saveMoodToDatabase();
+    });
+  }
+  
+  Future<void> _saveMoodToDatabase() async {
+    try {
+      await _mentalStateService.saveQuickMood(
+        date: DateTime.now(),
+        moodValue: _moodValue,
+      );
+      
+      // Show a subtle confirmation
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Mood updated'),
+            duration: Duration(seconds: 1),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error saving mood: $e');
+    }
+  }
+  
+  Future<void> _loadLatestMood() async {
+    try {
+      final latestState = await _mentalStateService.getLatestMentalState();
+      if (latestState != null) {
+        setState(() {
+          _moodValue = latestState.state;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading mood: $e');
+    }
   }
 
   void _onDayTapped(int index) {
