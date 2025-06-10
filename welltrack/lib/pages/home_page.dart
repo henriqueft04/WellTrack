@@ -85,32 +85,56 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, dynamic>> _weeklyData = [];
 
+  bool hasNotified = false; // evita notificações duplicadas
+
   double _moodValue = 1.0;
   late int _selectedDayIndex;
   late List<DateTime> _calendarDays;
   final ScrollController _calendarScrollController = ScrollController();
 
+  late UserStatsProvider userStats;
+
   @override
   void initState() {
     super.initState();
+
+    userStats = Provider.of<UserStatsProvider>(context, listen: false);
+
     _calendarDays = List.generate(
       11,
       (i) => DateTime.now().subtract(Duration(days: 5 - i)),
     );
-    _selectedDayIndex = 5; // Today is at index 5
+    _selectedDayIndex = 5;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToDay(_selectedDayIndex);
+      _checkPermissions();
+      askNotificationPermission();
+
+      userStats.addListener(_checkStepGoalFromProvider);
     });
-    _checkPermissions();
-    askNotificationPermission();
   }
 
+  // Request notification permission
   Future<void> askNotificationPermission() async {
     var status = await Permission.notification.status;
     if (!status.isGranted) {
       await Permission.notification.request();
     }
   }
+
+  // Check if the user has reached their daily step goal
+  void _checkStepGoalFromProvider() {
+
+    if (userStats.steps >= userStats.dailyGoal && !hasNotified) {
+      NotiService().showNotification(
+        title: '🎉 Step Goal Reached!',
+        body: 'You have reached your daily step goal! Great job! 💪',
+      );
+      hasNotified = true;
+    }
+  }
+
 
   void _scrollToDay(int index) {
     // Each item is 60 width + 16 margin (8 left, 8 right)
@@ -129,6 +153,8 @@ class _HomePageState extends State<HomePage> {
     pedestrianSubscription?.cancel();
     stepTimer?.cancel();
     sessionTimer?.cancel();
+    final statsProvider = Provider.of<UserStatsProvider>(context, listen: false);
+    statsProvider.removeListener(_checkStepGoalFromProvider);
     super.dispose();
   }
 
@@ -153,18 +179,19 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> initializeApp() async {
     await _loadDailyData();
-    await _loadTodaySteps();
+    await _loadTodaySteps(); // se possível retornar os steps aqui
     _setupMovementDetection();
 
     setState(() {
       isIntialized = true;
-      final userStats = Provider.of<UserStatsProvider>(context, listen: false);
-      userStats.updateSteps(steps);
-      userStats.updateCalories(calories);
-      userStats.updateDistance(distance);
-      userStats.setDailyGoal(dailyGoal);
     });
+
+    userStats.updateSteps(steps);
+    userStats.updateCalories(calories);
+    userStats.updateDistance(distance);
+    userStats.setDailyGoal(dailyGoal);
   }
+
 
   Future<void> _setupMovementDetection() async {
     try {
@@ -733,17 +760,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: HomePageConstants.bottomSpacing),
                 _buildActionCards(),
-
-                // Notification Button To Test
-                ElevatedButton(
-                  onPressed: () {
-                    NotiService().showNotification(
-                      title: 'WellTrack Reminder',
-                      body: 'Time to check your daily progress!',
-                    );
-                  },
-                  child: const Text('Show Notification'),
-                ),
               ],
             ),
           ),
