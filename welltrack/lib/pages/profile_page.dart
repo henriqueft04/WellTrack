@@ -6,6 +6,7 @@ import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/models/profile_button.dart';
 import 'package:welltrack/pages/edit_profile_page.dart';
+import 'package:welltrack/controllers/sign_up_controller.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,6 +16,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final SignUpController authController = SignUpController();
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +25,54 @@ class _ProfilePageState extends State<ProfilePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().loadUserProfile();
     });
+  }
+
+  Future<void> _handleLogout() async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // Sign out from Supabase authentication
+      await authController.signOut();
+      
+      // Clear local user data
+      if (mounted) {
+        context.read<UserProvider>().clearUser();
+      }
+
+      // Hide loading dialog
+      if (mounted) Navigator.pop(context);
+
+      // Navigate to login page
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginPage(),
+          ),
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      // Hide loading dialog
+      if (mounted) Navigator.pop(context);
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -65,17 +116,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ProfileButton(
                     icon: Icons.logout,
                     text: 'Logout',
-                    onTap: () {
-                      // Clear user data on logout
-                      context.read<UserProvider>().clearUser();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LoginPage(),
-                        ),
-                        (route) => false,
-                      );
-                    },
+                    onTap: _handleLogout,
                   ),
                 ],
               ),

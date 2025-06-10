@@ -3,6 +3,9 @@ import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
 import 'package:provider/provider.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
+import 'package:welltrack/core/injection.dart';
+import 'package:welltrack/services/mental_state_service.dart';
+import 'package:welltrack/utils/mood_utils.dart';
 
 class MentalStateFormPage extends StatefulWidget {
   final int? originIndex;
@@ -142,9 +145,9 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        _getMoodIcon(),
+                        MoodUtils.getMoodIcon(_moodValue),
                         size: 80,
-                        color: _getMoodColor(),
+                        color: MoodUtils.getMoodColor(_moodValue),
                       ),
                       const SizedBox(height: 16),
                       Padding(
@@ -274,25 +277,5 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
         ),
       ),
     );
-  }
-
-  IconData _getMoodIcon() {
-    if (_moodValue <= 0.5) {
-      return Icons.sentiment_dissatisfied;
-    } else if (_moodValue <= 1.5) {
-      return Icons.sentiment_neutral;
-    } else {
-      return Icons.sentiment_satisfied;
-    }
-  }
-
-  Color _getMoodColor() {
-    if (_moodValue <= 0.5) {
-      return Colors.red;
-    } else if (_moodValue <= 1.5) {
-      return Colors.orange;
-    } else {
-      return Colors.green;
-    }
   }
 } 
