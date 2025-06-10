@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   final List<Map<String, dynamic>> _weeklyData = [];
 
-  double _moodValue = 1.0;
+  double _moodValue = 2.0; // Default to "ok" on 0-4 scale
   late int _selectedDayIndex;
   late List<DateTime> _calendarDays;
   final ScrollController _calendarScrollController = ScrollController();
