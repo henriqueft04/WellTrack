@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:welltrack/notifications/noti_service.dart';
+import 'package:welltrack/pages/home_page.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/stats_provider.dart';
 import 'package:welltrack/providers/user_provider.dart';
@@ -11,6 +13,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // init notifications
+  NotiService().initNotification();
 
   // Initialize dependency injection
   configureDependencies();
