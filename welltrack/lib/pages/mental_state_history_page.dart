@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
-import 'package:welltrack/models/mental_state.dart';
 import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:provider/provider.dart';
 
@@ -115,7 +114,7 @@ class _MentalStateHistoryPageState extends State<MentalStateHistoryPage> {
                             children: state.emotions!.map((emotion) {
                               return Chip(
                                 label: Text(emotion),
-                                backgroundColor: Colors.lightBlue.withOpacity(0.2),
+                                backgroundColor: Colors.lightBlue,
                                 labelStyle: const TextStyle(color: Colors.blue),
                               );
                             }).toList(),
@@ -129,7 +128,7 @@ class _MentalStateHistoryPageState extends State<MentalStateHistoryPage> {
                             children: state.factors!.map((factor) {
                               return Chip(
                                 label: Text(factor),
-                                backgroundColor: Colors.pink.withOpacity(0.2),
+                                backgroundColor: Colors.pink,
                                 labelStyle: const TextStyle(color: Colors.pink),
                               );
                             }).toList(),
