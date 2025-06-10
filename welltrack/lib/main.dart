@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:welltrack/pages/login_page.dart';
+import 'package:welltrack/components/main_navigation.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/core/injection.dart';
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           useMaterial3: true,
         ),
-        home: const LoginPage(),
+        home: const MainNavigation(),
       ),
     );
   }
