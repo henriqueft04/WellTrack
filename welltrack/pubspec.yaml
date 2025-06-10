@@ -60,6 +60,7 @@ dependencies:
   shared_preferences: ^2.5.3
   record: ^5.1.2
   audioplayers: ^6.1.0
+  speech_to_text: ^7.0.0
 
 dev_dependencies:
   flutter_test:

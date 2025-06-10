@@ -8,6 +8,7 @@ import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
 import 'package:welltrack/models/journal_entry.dart';
 import 'package:welltrack/services/journal_service.dart';
+import 'package:welltrack/services/transcription_service.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/widgets/audio_player_widget.dart';
 import 'package:provider/provider.dart';
@@ -29,16 +30,37 @@ class AudioJournalPage extends StatefulWidget {
 
 class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerProviderStateMixin {
   final _captionController = TextEditingController();
+  final _transcriptionController = TextEditingController();
   final _journalService = JournalService();
   final _audioRecorder = AudioRecorder();
+  final _transcriptionService = TranscriptionService();
   
   bool _isRecording = false;
   bool _isPaused = false;
   bool _hasRecording = false;
   bool _isSaving = false;
+  bool _isTranscribing = false;
   String? _recordingPath;
+  String _transcription = '';
   Duration _recordingDuration = Duration.zero;
   Timer? _timer;
+  
+  // Language settings
+  String _selectedLocale = 'en_US'; // Default to English US
+  List<Map<String, String>> _availableLocales = [
+    {'id': 'en_US', 'name': 'English (US)'},
+    {'id': 'en_GB', 'name': 'English (UK)'},
+    {'id': 'pt_PT', 'name': 'Português (Portugal)'},
+    {'id': 'pt_BR', 'name': 'Português (Brasil)'},
+    {'id': 'es_ES', 'name': 'Español (España)'},
+    {'id': 'es_MX', 'name': 'Español (México)'},
+    {'id': 'fr_FR', 'name': 'Français'},
+    {'id': 'de_DE', 'name': 'Deutsch'},
+    {'id': 'it_IT', 'name': 'Italiano'},
+    {'id': 'ja_JP', 'name': '日本語'},
+    {'id': 'ko_KR', 'name': '한국어'},
+    {'id': 'zh_CN', 'name': '中文 (简体)'},
+  ];
   
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
@@ -60,6 +82,7 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
     ));
     
     _checkPermission();
+    _initializeTranscription();
   }
 
   @override
@@ -67,6 +90,8 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
     _timer?.cancel();
     _audioRecorder.dispose();
     _captionController.dispose();
+    _transcriptionController.dispose();
+    _transcriptionService.dispose();
     _animationController.dispose();
     super.dispose();
   }
@@ -75,6 +100,45 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
     final status = await Permission.microphone.status;
     if (!status.isGranted) {
       await Permission.microphone.request();
+    }
+  }
+
+  Future<void> _initializeTranscription() async {
+    try {
+      final isAvailable = await _transcriptionService.initialize();
+      debugPrint('Speech recognition initialized: $isAvailable');
+      
+      if (isAvailable) {
+        // Get available locales from the device
+        final locales = await _transcriptionService.getAvailableLocales();
+        if (locales.isNotEmpty) {
+          debugPrint('Available locales: ${locales.map((l) => '${l.localeId} (${l.name})').join(', ')}');
+          
+          // Check if device has Portuguese as a priority
+          final portugueseLocale = locales.firstWhere(
+            (l) => l.localeId.startsWith('pt'),
+            orElse: () => locales.first,
+          );
+          
+          if (mounted) {
+            setState(() {
+              _selectedLocale = portugueseLocale.localeId;
+            });
+          }
+        }
+      }
+      
+      if (!isAvailable && mounted) {
+        debugPrint('Speech recognition not available on this device');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Automatic transcription not available. You can type manually.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error initializing transcription: $e');
     }
   }
 
@@ -93,7 +157,51 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
           _hasRecording = false;
           _recordingPath = recordingPath;
           _recordingDuration = Duration.zero;
+          _transcription = '';
+          _isTranscribing = true;
         });
+        
+        // Start transcription
+        if (_transcriptionService.isAvailable) {
+          debugPrint('Speech recognition is available, starting with locale: $_selectedLocale');
+          await _transcriptionService.startListening(
+            localeId: _selectedLocale,
+            onResult: (result) {
+              debugPrint('Transcription result: $result');
+              setState(() {
+                _transcription = result;
+                _transcriptionController.text = result;
+              });
+            },
+            onError: (error) {
+              debugPrint('Transcription error: $error');
+              setState(() {
+                _isTranscribing = false;
+              });
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Speech recognition error: $error'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              }
+            },
+          );
+        } else {
+          debugPrint('Speech recognition not available');
+          setState(() {
+            _isTranscribing = false;
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Speech recognition not available on this device'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
         
         _animationController.repeat();
         _startTimer();
@@ -147,6 +255,7 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
 
   Future<void> _stopRecording() async {
     final path = await _audioRecorder.stop();
+    await _transcriptionService.stopListening();
     _timer?.cancel();
     _animationController.stop();
     _animationController.reset();
@@ -156,6 +265,7 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
       _isPaused = false;
       _hasRecording = true;
       _recordingPath = path;
+      _isTranscribing = false;
     });
   }
 
@@ -164,6 +274,8 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
       _hasRecording = false;
       _recordingPath = null;
       _recordingDuration = Duration.zero;
+      _transcription = '';
+      _transcriptionController.clear();
     });
   }
 
@@ -187,6 +299,9 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
         audioPath: savedPath,
         caption: _captionController.text.trim().isNotEmpty 
             ? _captionController.text.trim() 
+            : null,
+        transcription: _transcriptionController.text.trim().isNotEmpty
+            ? _transcriptionController.text.trim()
             : null,
       );
 
@@ -272,7 +387,50 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
                 'Express your thoughts through voice',
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 24),
+              
+              // Language selector
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.language, color: Colors.grey[600], size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedLocale,
+                          isExpanded: true,
+                          icon: Icon(Icons.arrow_drop_down, color: Colors.grey[600]),
+                          style: TextStyle(
+                            color: Colors.grey[800],
+                            fontSize: 14,
+                          ),
+                          onChanged: (String? newValue) {
+                            if (newValue != null) {
+                              setState(() {
+                                _selectedLocale = newValue;
+                              });
+                            }
+                          },
+                          items: _availableLocales.map<DropdownMenuItem<String>>((locale) {
+                            return DropdownMenuItem<String>(
+                              value: locale['id'],
+                              child: Text(locale['name']!),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
               
               // Recording UI
               Center(
@@ -424,6 +582,75 @@ class _AudioJournalPageState extends State<AudioJournalPage> with SingleTickerPr
                           audioPath: _recordingPath!,
                           primaryColor: Colors.orange,
                           backgroundColor: Colors.orange.shade200,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+                
+                // Transcription section
+                if (_hasRecording) ...[
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Transcription',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (_isTranscribing)
+                              const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _transcriptionController,
+                          maxLines: 5,
+                          decoration: InputDecoration(
+                            hintText: _isTranscribing 
+                                ? 'Listening for speech...' 
+                                : 'Type what you said in the recording or edit the automatic transcription...',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.all(12),
+                          ),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _isTranscribing 
+                              ? 'Speech recognition is active...'
+                              : _transcription.isEmpty 
+                                  ? 'No speech detected. You can type your transcription manually.'
+                                  : 'You can edit the transcription above',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
                         ),
                       ],
                     ),

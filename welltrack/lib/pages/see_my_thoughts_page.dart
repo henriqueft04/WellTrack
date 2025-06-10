@@ -251,6 +251,47 @@ class _SeeMyThoughtsPageState extends State<SeeMyThoughtsPage> {
                   ),
                 ],
               ),
+            if (entry.transcription != null && entry.transcription!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.subtitles,
+                          size: 16,
+                          color: Colors.blue[700],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Transcription',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      entry.transcription!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (entry.caption != null && entry.caption!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
@@ -258,6 +299,7 @@ class _SeeMyThoughtsPageState extends State<SeeMyThoughtsPage> {
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[700],
+                  fontStyle: FontStyle.italic,
                 ),
               ),
             ],

@@ -3,7 +3,7 @@ import 'package:path/path.dart';
 
 class DatabaseHelper {
   static final _databaseName = "WellTrack.db";
-  static final _databaseVersion = 3;
+  static final _databaseVersion = 4;
 
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -46,6 +46,7 @@ class DatabaseHelper {
         photo_path TEXT,
         audio_path TEXT,
         caption TEXT,
+        transcription TEXT,
         created_at TEXT NOT NULL,
         updated_at TEXT
       )
@@ -98,6 +99,13 @@ class DatabaseHelper {
           created_at TEXT NOT NULL,
           updated_at TEXT
         )
+      ''');
+    }
+    
+    if (oldVersion < 4) {
+      // Add transcription column to journal_entries
+      await db.execute('''
+        ALTER TABLE journal_entries ADD COLUMN transcription TEXT
       ''');
     }
   }

@@ -11,6 +11,7 @@ class JournalEntry {
   final String? photoPath;
   final String? audioPath;
   final String? caption;
+  final String? transcription;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -23,6 +24,7 @@ class JournalEntry {
     this.photoPath,
     this.audioPath,
     this.caption,
+    this.transcription,
     DateTime? createdAt,
     this.updatedAt,
   }) : createdAt = createdAt ?? DateTime.now();
@@ -37,6 +39,7 @@ class JournalEntry {
       'photo_path': photoPath,
       'audio_path': audioPath,
       'caption': caption,
+      'transcription': transcription,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
@@ -54,6 +57,7 @@ class JournalEntry {
       photoPath: map['photo_path'],
       audioPath: map['audio_path'],
       caption: map['caption'],
+      transcription: map['transcription'],
       createdAt: DateTime.parse(map['created_at']),
       updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at']) : null,
     );
@@ -72,6 +76,7 @@ class JournalEntry {
     String? photoPath,
     String? audioPath,
     String? caption,
+    String? transcription,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -84,6 +89,7 @@ class JournalEntry {
       photoPath: photoPath ?? this.photoPath,
       audioPath: audioPath ?? this.audioPath,
       caption: caption ?? this.caption,
+      transcription: transcription ?? this.transcription,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
