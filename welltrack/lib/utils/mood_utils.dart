@@ -1,34 +1,36 @@
 import 'package:flutter/material.dart';
 
 class MoodUtils {
-  // Convert mental_state string to mood value (0.0 to 2.0 scale)
+  // Convert mental_state string to mood value (0.0 to 4.0 scale)
   static double mentalStateToMoodValue(String? mentalState) {
-    if (mentalState == null) return 1.0; // neutral default
+    if (mentalState == null) return 2.0; // neutral default
     
     switch (mentalState.toLowerCase()) {
       case 'very_unpleasant':
         return 0.0;
       case 'unpleasant':
-        return 0.5;
-      case 'ok':
         return 1.0;
-      case 'pleasant':
-        return 1.5;
-      case 'very_pleasant':
+      case 'ok':
         return 2.0;
+      case 'pleasant':
+        return 3.0;
+      case 'very_pleasant':
+        return 4.0;
       default:
-        return 1.0; // neutral default
+        return 2.0; // neutral default
     }
   }
 
   // Get mood icon based on mood value
   static IconData getMoodIcon(double moodValue) {
-    if (moodValue == 0.0) {
+    if (moodValue <= 0.5) {
       return Icons.sentiment_very_dissatisfied;
-    } else if (moodValue == 0.5) {
-      return Icons.sentiment_dissatisfied;
     } else if (moodValue <= 1.5) {
+      return Icons.sentiment_dissatisfied;
+    } else if (moodValue <= 2.5) {
       return Icons.sentiment_neutral;
+    } else if (moodValue <= 3.5) {
+      return Icons.sentiment_satisfied;
     } else {
       return Icons.sentiment_very_satisfied;
     }
@@ -41,13 +43,13 @@ class MoodUtils {
 
   // Get mood color based on mood value
   static Color getMoodColor(double moodValue) {
-    if (moodValue == 0.0) {
+    if (moodValue <= 0.5) {
       return Colors.red;
-    } else if (moodValue == 0.5) {
+    } else if (moodValue <= 1.5) {
       return Colors.deepOrange;
-    } else if (moodValue == 1.0) {
+    } else if (moodValue <= 2.5) {
       return Colors.orange;
-    } else if (moodValue == 1.5) {
+    } else if (moodValue <= 3.5) {
       return Colors.lightGreen;
     } else {
       return Colors.green;
@@ -81,18 +83,16 @@ class MoodUtils {
 
   // Convert mood value back to mental state string
   static String moodValueToMentalState(double moodValue) {
-    if (moodValue == 0.0) {
+    if (moodValue <= 0.5) {
       return 'very_unpleasant';
-    } else if (moodValue == 0.5) {
+    } else if (moodValue <= 1.5) {
       return 'unpleasant';
-    } else if (moodValue == 1.0) {
+    } else if (moodValue <= 2.5) {
       return 'ok';
-    } else if (moodValue == 1.5) {
+    } else if (moodValue <= 3.5) {
       return 'pleasant';
-    } else if (moodValue == 2.0) {
-      return 'very_pleasant';
     } else {
-      return 'ok'; // default fallback
+      return 'very_pleasant';
     }
   }
 } 

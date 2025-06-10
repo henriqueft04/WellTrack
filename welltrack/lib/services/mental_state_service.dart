@@ -1,9 +1,11 @@
 import 'package:welltrack/services/database_helper.dart';
+import 'package:welltrack/controllers/sign_up_controller.dart';
 
 import '../models/mental_state.dart';
 
 class MentalStateService {
   final _db = DatabaseHelper.instance;
+  final _signUpController = SignUpController();
 
   Future<void> saveMentalState({
     required DateTime date,
@@ -20,6 +22,10 @@ class MentalStateService {
     );
 
     await _db.insertMentalState(entry.toMap());
+    
+    // Update Supabase user table with the new mood
+    final moodEnum = _convertMoodValueToEnum(moodValue);
+    await _signUpController.updateMentalState(moodEnum);
   }
 
   Future<void> saveQuickMood({
@@ -35,6 +41,19 @@ class MentalStateService {
     );
 
     await _db.insertMentalState(entry.toMap());
+    
+    // Update Supabase user table with the new mood
+    final moodEnum = _convertMoodValueToEnum(moodValue);
+    await _signUpController.updateMentalState(moodEnum);
+  }
+  
+  String _convertMoodValueToEnum(double moodValue) {
+    // Convert 0-4 scale to enum values
+    if (moodValue <= 0.5) return 'very_unpleasant';
+    if (moodValue <= 1.5) return 'unpleasant';
+    if (moodValue <= 2.5) return 'ok';
+    if (moodValue <= 3.5) return 'pleasant';
+    return 'very_pleasant';
   }
 
   Future<List<MentalState>> getMentalStatesForDate(DateTime date) async {

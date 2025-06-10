@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:welltrack/notifications/noti_service.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/providers/stats_provider.dart';
+import 'package:welltrack/components/main_navigation.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:welltrack/providers/proximity_provider.dart';
 import 'package:welltrack/providers/bluetooth_provider.dart';

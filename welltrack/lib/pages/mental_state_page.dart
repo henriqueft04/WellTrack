@@ -53,7 +53,7 @@ class _MentalStatePageState extends State<MentalStatePage> {
               icon: Icons.sentiment_satisfied,
               label: 'State of Mind',
               color: Colors.lightBlue,
-              background: Colors.lightBlue,
+              background: Colors.lightBlue.withValues(alpha: 0.1),
               onTap: () {
                 Navigator.push(
                   context,
@@ -67,8 +67,8 @@ class _MentalStatePageState extends State<MentalStatePage> {
             StyledActionButton(
               icon: Icons.history,
               label: 'View History',
-              color: Colors.purple,
-              background: Colors.purple,
+              color: Colors.pink.shade200,
+              background: Colors.pink.shade200.withValues(alpha: 0.1),
               onTap: () {
                 Navigator.push(
                   context,
@@ -105,8 +105,6 @@ class _MentalStatePageState extends State<MentalStatePage> {
 
                   // Sort states by hour
                   dailyStates.sort((a, b) => a.date.hour.compareTo(b.date.hour));
-
-                  
 
                   return Padding(
                     padding: const EdgeInsets.only(right: 22.0, top: 18.0),

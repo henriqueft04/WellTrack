@@ -41,7 +41,7 @@ Widget buildMoodSlider(
           ),
           child: Slider(
             min: 0,
-            max: 2,
+            max: 4,
             divisions: 4,
             value: moodValue,
             onChanged: onMoodChanged,
@@ -51,11 +51,11 @@ Widget buildMoodSlider(
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('unpleasant'),
-            Text(''),
-            Text('neutral'),
-            Text(''),
-            Text('pleasant'),
+            Text('very\nunpleasant', textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
+            Text('unpleasant', style: TextStyle(fontSize: 10)),
+            Text('ok', style: TextStyle(fontSize: 10)),
+            Text('pleasant', style: TextStyle(fontSize: 10)),
+            Text('very\npleasant', textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),
           ],
         ),
       ],
