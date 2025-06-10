@@ -23,7 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.welltrack"
-        minSdk = 21 // Minimum required for Google Sign In
+        minSdk = 23 // Minimum required for audio recording and Google Sign In
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName

@@ -1,6 +1,4 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:welltrack/main.dart';
 
 class LocationService {
@@ -153,19 +151,35 @@ class LocationService {
         await getCurrentLocation();
       }
 
-      if (_currentPosition == null || _currentUserId == null) return [];
+      if (_currentPosition == null || _currentUserId == null) {
+        print('LocationService: Cannot get nearby users - position: $_currentPosition, userId: $_currentUserId');
+        return [];
+      }
+
+      // Convert infinity to a very large number that the database can handle
+      final dbRadius = radiusInMeters.isInfinite ? 50000000.0 : radiusInMeters; // 50,000km (more than Earth's circumference)
+
+      print('LocationService: Getting nearby users for user $_currentUserId at ${_currentPosition!.latitude}, ${_currentPosition!.longitude} within ${radiusInMeters.isInfinite ? 'worldwide' : '${radiusInMeters}m'}');
 
       // Use the stored function for efficient nearby user queries
       final response = await supabase.rpc('get_nearby_users', params: {
         'current_user_id': _currentUserId!,
         'user_lat': _currentPosition!.latitude,
         'user_lng': _currentPosition!.longitude,
-        'radius_meters': radiusInMeters,
+        'radius_meters': dbRadius,
       });
 
-      return List<Map<String, dynamic>>.from(response ?? []);
+      final nearbyUsers = List<Map<String, dynamic>>.from(response ?? []);
+      print('LocationService: Found ${nearbyUsers.length} nearby users from RPC');
+      
+      // Log each user found
+      for (var user in nearbyUsers) {
+        print('LocationService: User ${user['user_id']} (${user['name']}) at distance ${user['distance_meters']}m');
+      }
+
+      return nearbyUsers;
     } catch (e) {
-      print('Error getting nearby users: $e');
+      print('LocationService: Error getting nearby users via RPC: $e');
       
       // Fallback to manual query if stored function fails
       return await _getNearbyUsersManual(radiusInMeters);
@@ -175,7 +189,12 @@ class LocationService {
   // Fallback manual method for getting nearby users
   Future<List<Map<String, dynamic>>> _getNearbyUsersManual(double radiusInMeters) async {
     try {
-      if (_currentPosition == null || _currentUserId == null) return [];
+      if (_currentPosition == null || _currentUserId == null) {
+        print('LocationService: Cannot get nearby users manually - position: $_currentPosition, userId: $_currentUserId');
+        return [];
+      }
+
+      print('LocationService: Falling back to manual query for nearby users');
 
       // Get all user locations except current user
       final response = await supabase
@@ -194,11 +213,16 @@ class LocationService {
           .neq('user_id', _currentUserId!)
           .eq('privacy_location', true);
 
+      print('LocationService: Manual query returned ${response.length} user locations');
+
       List<Map<String, dynamic>> nearbyUsers = [];
 
       for (var userLocation in response) {
         // Check if user allows visibility
-        if (userLocation['users']['privacy_visible'] != true) continue;
+        if (userLocation['users']['privacy_visible'] != true && userLocation['users']['privacy_visible'] != null) {
+          print('LocationService: Skipping user ${userLocation['user_id']} - privacy_visible is false');
+          continue;
+        }
 
         double distance = calculateDistance(
           _currentPosition!,
@@ -216,7 +240,10 @@ class LocationService {
           ),
         );
 
-        if (distance <= radiusInMeters) {
+        print('LocationService: User ${userLocation['user_id']} is ${distance}m away (radius: ${radiusInMeters.isInfinite ? 'worldwide' : '${radiusInMeters}m'})');
+
+        // For infinite radius, include all users. For finite radius, check distance
+        if (radiusInMeters.isInfinite || distance <= radiusInMeters) {
           // Flatten the structure to match the stored function output
           final user = userLocation['users'];
           nearbyUsers.add({
@@ -236,9 +263,10 @@ class LocationService {
       // Sort by distance
       nearbyUsers.sort((a, b) => a['distance_meters'].compareTo(b['distance_meters']));
       
+      print('LocationService: Found ${nearbyUsers.length} nearby users within radius');
       return nearbyUsers;
     } catch (e) {
-      print('Error in manual nearby users query: $e');
+      print('LocationService: Error in manual nearby users query: $e');
       return [];
     }
   }

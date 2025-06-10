@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
+import 'package:provider/provider.dart';
+import 'package:welltrack/viewmodels/mental_state_view_model.dart';
 import 'package:welltrack/core/injection.dart';
 import 'package:welltrack/services/mental_state_service.dart';
+import 'package:welltrack/utils/mood_utils.dart';
 
 class MentalStateFormPage extends StatefulWidget {
   final int? originIndex;
@@ -23,36 +26,33 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
   final Set<String> _selectedEmotions = {};
   final Set<String> _selectedImpacts = {};
 
-  // Dependency injection - get service from DI container
-  late final MentalStateService _mentalStateService;
-
   @override
   void initState() {
     super.initState();
-    _mentalStateService = locate<MentalStateService>();
-    _loadExistingData();
-  }
-
-  Future<void> _loadExistingData() async {
-    final existingData = await _mentalStateService.getMentalStateForDate(widget.selectedDate);
-    if (existingData != null) {
-      setState(() {
-        _moodValue = existingData.moodValue;
-        _selectedEmotions.addAll(existingData.emotions);
-        _selectedImpacts.addAll(existingData.impacts);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final viewModel = Provider.of<MentalStateViewModel>(context, listen: false);
+      viewModel.loadMentalState(widget.selectedDate).then((_) {
+        final data = viewModel.mentalState;
+        if (data != null) {
+          setState(() {
+            _moodValue = data.state;
+            _selectedEmotions.addAll(data.emotions ?? {});
+            _selectedImpacts.addAll(data.factors ?? {});
+          });
+        }
       });
-    }
+    });
   }
 
   Future<void> _saveMentalState() async {
+    final viewModel = Provider.of<MentalStateViewModel>(context, listen: false);
     try {
-      await _mentalStateService.saveMentalState(
+      await viewModel.saveMentalState(
         date: widget.selectedDate,
         moodValue: _moodValue,
         emotions: _selectedEmotions,
         impacts: _selectedImpacts,
       );
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -145,9 +145,9 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        _getMoodIcon(),
+                        MoodUtils.getMoodIcon(_moodValue),
                         size: 80,
-                        color: _getMoodColor(),
+                        color: MoodUtils.getMoodColor(_moodValue),
                       ),
                       const SizedBox(height: 16),
                       Padding(
@@ -277,25 +277,5 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
         ),
       ),
     );
-  }
-
-  IconData _getMoodIcon() {
-    if (_moodValue <= 0.5) {
-      return Icons.sentiment_dissatisfied;
-    } else if (_moodValue <= 1.5) {
-      return Icons.sentiment_neutral;
-    } else {
-      return Icons.sentiment_satisfied;
-    }
-  }
-
-  Color _getMoodColor() {
-    if (_moodValue <= 0.5) {
-      return Colors.red;
-    } else if (_moodValue <= 1.5) {
-      return Colors.orange;
-    } else {
-      return Colors.green;
-    }
   }
 } 

@@ -13,6 +13,7 @@ class UserProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   bool get hasUser => _userProfile != null;
+  int? get userId => _userProfile?['id'] as int?;
 
   // Load user profile
   Future<void> loadUserProfile() async {

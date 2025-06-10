@@ -63,10 +63,15 @@
 	
 	<!-- Camera and Photo Library Permissions -->
 	<key>NSCameraUsageDescription</key>
-	<string>This app needs access to camera to take profile pictures</string>
+	<string>This app needs access to camera to take photos for your journal</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app needs access to photo library to select profile pictures</string>
+	<string>This app needs access to photo library to select photos for your journal</string>
 	<!-- End of Camera and Photo Library Permissions -->
+	
+	<!-- Microphone Permission -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone to record audio journal entries</string>
+	<!-- End of Microphone Permission -->
 
 	<!-- Location Permissions -->
 	<key>NSLocationWhenInUseUsageDescription</key>

@@ -3,7 +3,9 @@ import 'package:welltrack/components/app_layout.dart';
 import 'package:welltrack/components/main_navigation.dart';
 import 'package:welltrack/models/action_card.dart';
 import 'package:welltrack/pages/see_my_thoughts_page.dart';
-import 'package:welltrack/pages/insert_thoughts_page.dart';
+import 'package:welltrack/pages/text_journal_page.dart';
+import 'package:welltrack/pages/photo_journal_page.dart';
+import 'package:welltrack/pages/audio_journal_page.dart';
 
 class JournalSelectionPage extends StatelessWidget {
   final int? originIndex;
@@ -42,35 +44,91 @@ class JournalSelectionPage extends StatelessWidget {
               const SizedBox(height: 24),
               
               const Text(
-                'Choose an option',
+                'Choose journal type',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 32),
+              
+              // View entries button
               StyledActionButton(
                 icon: Icons.visibility,
-                label: 'See my thoughts',
+                label: 'View my journal',
                 color: Colors.lightBlue,
                 background: Colors.lightBlue.withValues(alpha: 0.1),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => SeeMyThoughtsPage(originIndex: originIndex),
+                      builder: (context) => SeeMyThoughtsPage(
+                        originIndex: originIndex,
+                        selectedDate: selectedDate,
+                      ),
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
+              
+              const Text(
+                'Create new entry',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              
+              // Text entry button
               StyledActionButton(
-                icon: Icons.edit,
-                label: 'Insert',
-                color: Colors.pink.shade200,
-                background: Colors.pink.shade200.withValues(alpha: 0.1),
+                icon: Icons.edit_note,
+                label: 'Write text',
+                color: Colors.deepPurple,
+                background: Colors.deepPurple.withValues(alpha: 0.1),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => InsertThoughtsPage(originIndex: originIndex),
+                      builder: (context) => TextJournalPage(
+                        originIndex: originIndex,
+                        selectedDate: selectedDate,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Photo entry button
+              StyledActionButton(
+                icon: Icons.photo_camera,
+                label: 'Add photo',
+                color: Colors.green,
+                background: Colors.green.withValues(alpha: 0.1),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PhotoJournalPage(
+                        originIndex: originIndex,
+                        selectedDate: selectedDate,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              // Audio entry button
+              StyledActionButton(
+                icon: Icons.mic,
+                label: 'Record audio',
+                color: Colors.orange,
+                background: Colors.orange.withValues(alpha: 0.1),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AudioJournalPage(
+                        originIndex: originIndex,
+                        selectedDate: selectedDate,
+                      ),
                     ),
                   );
                 },

@@ -117,6 +117,9 @@ class ProximityProvider with ChangeNotifier {
 
   // Format distance for display
   String formatDistance(double distanceInMeters) {
+    if (distanceInMeters.isInfinite) {
+      return 'Worldwide';
+    }
     if (distanceInMeters < 1000) {
       return '${distanceInMeters.round()}m';
     } else {
