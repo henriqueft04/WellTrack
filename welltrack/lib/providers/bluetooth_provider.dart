@@ -7,7 +7,7 @@ import 'package:welltrack/services/settings_service.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibration/vibration.dart';
-import 'package:welltrack/services/bluetooth_service.dart';
+import 'package:welltrack/services/bluetooth_service.dart' as welltrack_bluetooth;
 
 class BluetoothProvider with ChangeNotifier {
   // Private state variables
@@ -446,7 +446,7 @@ class BluetoothProvider with ChangeNotifier {
       }
       
       // Use the BluetoothService to get a proper device identifier
-      final bluetoothService = BluetoothService();
+      final bluetoothService = welltrack_bluetooth.BluetoothService();
       return await bluetoothService.getDeviceBluetoothId();
     } catch (e) {
       debugPrint('BluetoothProvider: Error getting device ID: $e');
