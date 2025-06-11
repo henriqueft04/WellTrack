@@ -277,24 +277,36 @@ class BluetoothProvider with ChangeNotifier {
 
   // Lookup WellTrack users by Bluetooth device IDs in Supabase
   Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults) async {
-    try {
-      debugPrint('BluetoothProvider: Looking up WellTrack users for device IDs: $deviceIds');
-      
-      final supabase = Supabase.instance.client;
-      
-      // Use the new lookup function that handles both MAC addresses and BT_ IDs
-      final response = await supabase
-          .rpc('lookup_users_by_bluetooth_ids', params: {
-            'device_ids': deviceIds
-          });
-      
-      debugPrint('BluetoothProvider: Database lookup response: $response');
-      
-      if (response == null || (response as List).isEmpty) {
-        debugPrint('BluetoothProvider: No WellTrack users found in database');
-        _clearStaleAlerts();
-        return;
-      }
+    // Add retry logic for network issues
+    int retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        debugPrint('BluetoothProvider: Looking up WellTrack users for device IDs: $deviceIds (attempt ${retryCount + 1}/$maxRetries)');
+        
+        final supabase = Supabase.instance.client;
+        
+        // Use the new lookup function that handles both MAC addresses and BT_ IDs
+        // Add timeout to prevent hanging
+        final response = await supabase
+            .rpc('lookup_users_by_bluetooth_ids', params: {
+              'device_ids': deviceIds
+            })
+            .timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                throw Exception('Database lookup timed out');
+              },
+            );
+        
+        debugPrint('BluetoothProvider: Database lookup response: $response');
+        
+        if (response == null || (response as List).isEmpty) {
+          debugPrint('BluetoothProvider: No WellTrack users found in database');
+          _clearStaleAlerts();
+          return;
+        }
       
       // Create a map for quick device ID to scan result lookup
       final deviceToScanResult = <String, ScanResult>{};
@@ -353,9 +365,31 @@ class BluetoothProvider with ChangeNotifier {
         await _triggerSupportAlert(usersNeedingSupport);
       }
       
-      notifyListeners();
-    } catch (e) {
-      _setError('Failed to lookup nearby users: $e');
+        notifyListeners();
+        return; // Success - exit the retry loop
+        
+      } catch (e, stackTrace) {
+        retryCount++;
+        
+        if (retryCount >= maxRetries) {
+          debugPrint('BluetoothProvider: Failed to lookup nearby users after $maxRetries attempts: $e');
+          debugPrint('Stack trace: $stackTrace');
+          
+          // Check if it's a connection error
+          if (e.toString().contains('connection closed') || 
+              e.toString().contains('timed out') ||
+              e.toString().contains('SocketException')) {
+            _setError('Network error: Check your internet connection');
+          } else {
+            _setError('Failed to lookup nearby users: ${e.toString().split('\n').first}');
+          }
+          return;
+        }
+        
+        // Wait before retrying
+        debugPrint('BluetoothProvider: Retrying in 2 seconds... (attempt $retryCount/$maxRetries)');
+        await Future.delayed(const Duration(seconds: 2));
+      }
     }
   }
 
