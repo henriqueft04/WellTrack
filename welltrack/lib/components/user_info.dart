@@ -24,16 +24,16 @@ class UserInfo extends StatelessWidget {
         if (userProvider.error != null) {
           return Column(
             children: [
-              Icon(Icons.error, color: Colors.red, size: 50),
-              SizedBox(height: 16),
-              Text(
+              const Icon(Icons.error, color: Colors.red, size: 50),
+              const SizedBox(height: 16),
+              const Text(
                 'Error loading profile',
                 style: TextStyle(color: Colors.red),
               ),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () => userProvider.refresh(),
-                child: Text('Retry'),
+                child: const Text('Retry'),
               ),
             ],
           );

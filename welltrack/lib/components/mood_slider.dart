@@ -37,7 +37,7 @@ Widget buildMoodSlider(
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 20),
             overlayShape: SliderComponentShape.noOverlay,
             thumbColor: Colors.white,
-            trackShape: RoundedRectSliderTrackShape(),
+            trackShape: const RoundedRectSliderTrackShape(),
           ),
           child: Slider(
             min: 0,

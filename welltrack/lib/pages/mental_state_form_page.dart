@@ -158,7 +158,7 @@ class _MentalStateFormPageState extends State<MentalStateFormPage> {
                             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 20),
                             overlayShape: SliderComponentShape.noOverlay,
                             thumbColor: Colors.white,
-                            trackShape: RoundedRectSliderTrackShape(),
+                            trackShape: const RoundedRectSliderTrackShape(),
                           ),
                           child: Slider(
                             min: 0,

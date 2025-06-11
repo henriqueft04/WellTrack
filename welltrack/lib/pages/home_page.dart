@@ -542,9 +542,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           color: Colors.blue[700],
                         ),
                       ),
-                      SizedBox(height: 15),
+                      const SizedBox(height: 15),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Text(
                           'Please grant permission to access your step count.',
                           textAlign: TextAlign.center,
@@ -554,7 +554,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      SizedBox(height: 40),
+                      const SizedBox(height: 40),
                       ElevatedButton(
                         onPressed: _checkPermissions,
                         style: ElevatedButton.styleFrom(
@@ -573,7 +573,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       TextButton(
                         onPressed: () async {
                           await openAppSettings();
@@ -592,11 +592,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     ispermissionGranted) //(_isIntialized && _ispermissionGranted)?
                   //Step Counter Card
                   Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(30),
+                          padding: const EdgeInsets.all(30),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [Colors.blue[400]!, Colors.blue[600]!],
@@ -606,7 +606,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               BoxShadow(
                                 color: Colors.blue.withOpacity(0.5),
                                 blurRadius: 10,
-                                offset: Offset(0, 5),
+                                offset: const Offset(0, 5),
                               ),
                             ],
                           ),
@@ -624,7 +624,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                       backgroundColor: Colors.white.withOpacity(
                                         0.3,
                                       ),
-                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                      valueColor: const AlwaysStoppedAnimation<Color>(
                                         Colors.white,
                                       ),
                                     ),
@@ -641,7 +641,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                       ),
                                       Text(
                                         '$steps',
-                                        style: TextStyle(
+                                        style: const TextStyle(
                                           fontSize: 40,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -659,10 +659,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 20),
+                              const SizedBox(height: 20),
                               //Message Walking/Stopped within blue card
                               Container(
-                                padding: EdgeInsets.symmetric(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 10,
                                 ),
@@ -675,7 +675,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 ),
                                 child: Text(
                                   _status == "walking" ? "Walking" : "Stopped",
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -685,7 +685,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             ],
                           ),
                         ),
-                        SizedBox(height: 30),
+                        const SizedBox(height: 30),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
@@ -709,9 +709,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             ),
                           ],
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Container(
-                          padding: EdgeInsets.all(20),
+                          padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(15),
@@ -719,21 +719,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               BoxShadow(
                                 color: Colors.grey.withOpacity(0.2),
                                 blurRadius: 10,
-                                offset: Offset(0, 5),
+                                offset: const Offset(0, 5),
                               ),
                             ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 "Weekly Activity",
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 20),
+                              const SizedBox(height: 20),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
@@ -774,7 +774,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                                       : null,
                                             ),
                                           ),
-                                          SizedBox(height: 5),
+                                          const SizedBox(height: 5),
                                           Text(
                                             data['day'],
                                             style: TextStyle(
@@ -827,7 +827,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             Icons.sentiment_satisfied,
             'State of Mind',
             'update your state333',
-            () => MaterialPageRoute(builder: (context) => MentalStatePage()),
+            () => MaterialPageRoute(builder: (context) => const MentalStatePage()),
           ),
           const SizedBox(height: HomePageConstants.cardSpacing),
           buildActionCard(
@@ -874,10 +874,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Column(
         children: [
           Icon(icon, color: color, size: 30),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Text(
             (value),
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(unit, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         ],

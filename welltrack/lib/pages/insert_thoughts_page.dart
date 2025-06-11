@@ -28,8 +28,8 @@ class _InsertThoughtsPageState extends State<InsertThoughtsPage>
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = const Color(0xFF9CD0FF);
-    final unselectedColor = Colors.black54;
+    const selectedColor = Color(0xFF9CD0FF);
+    const unselectedColor = Colors.black54;
     
     return NonMainPageWrapper(
       originIndex: widget.originIndex,

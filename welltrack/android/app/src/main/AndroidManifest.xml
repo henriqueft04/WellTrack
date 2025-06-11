@@ -54,6 +54,15 @@
                 <data android:scheme="https"
                       android:host="kaekvbykswfrevmsaslt.supabase.co" />
             </intent-filter>
+            
+            <!-- Add this section for handling email confirmation deep links -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Replace with your app's package name -->
+                <data android:scheme="com.example.welltrack" android:host="login" />
+            </intent-filter>
         </activity>
         <!-- Google Maps API Key -->
         <meta-data

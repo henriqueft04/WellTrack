@@ -12,6 +12,7 @@ A mobile-first wellness journal that unites mental and physical health tracking 
 - run the app
 ```flutter run```
 
-
+### Project repository
+https://github.com/henriqueft04/WellTrack
 
 

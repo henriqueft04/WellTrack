@@ -416,7 +416,7 @@ class _MapPageState extends State<MapPage> {
                 ),
                 if (provider.error != null) ...[
                   const SizedBox(height: 8),
-                  Text(provider.error!, style: TextStyle(color: Colors.red)),
+                  Text(provider.error!, style: const TextStyle(color: Colors.red)),
                 ],
                 if (provider.currentPosition != null) ...[
                   const SizedBox(height: 8),

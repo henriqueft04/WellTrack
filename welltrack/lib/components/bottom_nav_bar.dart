@@ -66,7 +66,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
         Icon(Icons.bluetooth, color: activeColor),
         Icon(Icons.person, color: activeColor),
       ],
-      inactiveIcons: [
+      inactiveIcons: const [
         Icon(Icons.home, color: inactiveColor),
         Icon(Icons.map, color: inactiveColor),
         Icon(Icons.calendar_today, color: inactiveColor),

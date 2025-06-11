@@ -66,8 +66,8 @@ class _RunsGoalPageState extends State<RunsGoalPage> {
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 16,
-                      activeTrackColor: Color(0xFFB3FFB3),
-                      inactiveTrackColor: Color(0xFFB3FFB3),
+                      activeTrackColor: const Color(0xFFB3FFB3),
+                      inactiveTrackColor: const Color(0xFFB3FFB3),
                       thumbColor: Colors.white,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
                     ),
