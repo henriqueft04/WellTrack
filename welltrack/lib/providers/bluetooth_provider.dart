@@ -7,6 +7,7 @@ import 'package:welltrack/services/settings_service.dart';
 import 'package:welltrack/providers/user_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibration/vibration.dart';
+import 'package:welltrack/services/bluetooth_service.dart';
 
 class BluetoothProvider with ChangeNotifier {
   // Private state variables
@@ -261,6 +262,9 @@ class BluetoothProvider with ChangeNotifier {
         .where((id) => id.isNotEmpty)
         .toList();
     
+    print('BluetoothProvider: Found ${results.length} scan results');
+    print('BluetoothProvider: Device IDs found: $deviceIds');
+    
     if (deviceIds.isNotEmpty) {
       _lookupWellTrackUsers(deviceIds, results);
     } else {
@@ -274,14 +278,18 @@ class BluetoothProvider with ChangeNotifier {
     try {
       final supabase = Supabase.instance.client;
       
-      // Query Supabase for users with matching bluetooth_device_id
-      final response = await supabase
-          .from('users')
-          .select('id, name, avatar, mental_state, bluetooth_device_id')
-          .inFilter('bluetooth_device_id', deviceIds)
-          .eq('privacy_visible', true); // Only include users who are visible
+      print('BluetoothProvider: Looking up WellTrack users for device IDs: $deviceIds');
       
-      if (response.isEmpty) {
+      // Use the new lookup function that handles both MAC addresses and BT_ IDs
+      final response = await supabase
+          .rpc('lookup_users_by_bluetooth_ids', params: {
+            'device_ids': deviceIds
+          });
+      
+      print('BluetoothProvider: Database lookup response: $response');
+      
+      if (response == null || (response as List).isEmpty) {
+        print('BluetoothProvider: No WellTrack users found in database');
         _clearStaleAlerts();
         return;
       }
@@ -289,19 +297,36 @@ class BluetoothProvider with ChangeNotifier {
       // Create a map for quick device ID to scan result lookup
       final deviceToScanResult = <String, ScanResult>{};
       for (final result in scanResults) {
-        deviceToScanResult[result.device.remoteId.toString()] = result;
+        final deviceId = result.device.remoteId.toString();
+        deviceToScanResult[deviceId] = result;
+        // Also map normalized versions
+        deviceToScanResult[deviceId.toUpperCase()] = result;
+        deviceToScanResult[deviceId.toLowerCase()] = result;
       }
       
       // Convert database results to BluetoothUser objects
       for (final userData in response) {
-        final bluetoothId = userData['bluetooth_device_id'] as String?;
-        if (bluetoothId == null) continue;
+        final matchedId = userData['matched_id'] as String?;
+        if (matchedId == null) continue;
         
-        final scanResult = deviceToScanResult[bluetoothId];
+        // Try to find the scan result using various ID formats
+        ScanResult? scanResult = deviceToScanResult[matchedId];
+        
+        // If not found by matched_id, try the original scanned IDs
+        if (scanResult == null) {
+          for (final entry in deviceToScanResult.entries) {
+            if (userData['bluetooth_device_id'] == entry.key ||
+                userData['bluetooth_mac_address'] == entry.key) {
+              scanResult = entry.value;
+              break;
+            }
+          }
+        }
+        
         if (scanResult == null) continue;
         
         final bluetoothUser = BluetoothUser(
-          deviceId: bluetoothId,
+          deviceId: scanResult.device.remoteId.toString(),
           username: userData['name'] ?? 'WellTrack User',
           avatarUrl: userData['avatar'],
           mentalState: userData['mental_state'],
@@ -339,8 +364,6 @@ class BluetoothProvider with ChangeNotifier {
       }
 
       // Get the current device's Bluetooth adapter address
-      // Note: This is a simplified approach - in reality you'd need platform-specific code
-      // to get the actual Bluetooth MAC address
       final deviceId = await _getCurrentDeviceBluetoothId();
       
       if (deviceId == null) {
@@ -351,9 +374,25 @@ class BluetoothProvider with ChangeNotifier {
       final supabase = Supabase.instance.client;
       final userId = _userProvider!.userProfile!['id'];
       
+      // Prepare updates based on the device ID format
+      final updates = <String, dynamic>{};
+      
+      // Check if the device ID looks like a MAC address (XX:XX:XX:XX:XX:XX)
+      if (deviceId.contains(':') && deviceId.length == 17) {
+        // It's a MAC address - store in both columns for compatibility
+        updates['bluetooth_mac_address'] = deviceId.toUpperCase();
+        updates['bluetooth_device_id'] = deviceId.toUpperCase(); // Also update the legacy column
+      } else if (deviceId.startsWith('WT_') || deviceId.startsWith('BT_')) {
+        // It's a legacy format ID - store only in bluetooth_device_id
+        updates['bluetooth_device_id'] = deviceId;
+      } else {
+        // Unknown format - store in bluetooth_device_id
+        updates['bluetooth_device_id'] = deviceId;
+      }
+      
       await supabase
           .from('users')
-          .update({'bluetooth_device_id': deviceId})
+          .update(updates)
           .eq('id', userId);
       
       // Update the user profile in the provider
@@ -369,20 +408,17 @@ class BluetoothProvider with ChangeNotifier {
     }
   }
 
-  // Get current device's Bluetooth ID (simplified - would need platform-specific implementation)
+  // Get current device's Bluetooth ID using the BluetoothService
   Future<String?> _getCurrentDeviceBluetoothId() async {
     try {
-      // For now, use a combination of available device info
-      // In a real implementation, you'd use platform channels to get the actual Bluetooth MAC
       final adapterState = await FlutterBluePlus.adapterState.first;
       if (adapterState != BluetoothAdapterState.on) {
         return null;
       }
       
-      // This is a placeholder - you'd need platform-specific code to get real Bluetooth MAC
-      // For demo purposes, we'll use a hash of device info
-      final deviceInfo = DateTime.now().millisecondsSinceEpoch.toString();
-      return 'BT_${deviceInfo.substring(deviceInfo.length - 8)}';
+      // Use the BluetoothService to get a proper device identifier
+      final bluetoothService = BluetoothService();
+      return await bluetoothService.getDeviceBluetoothId();
     } catch (e) {
       return null;
     }

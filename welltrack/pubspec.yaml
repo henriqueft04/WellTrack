@@ -65,6 +65,7 @@ dependencies:
   vibration: ^2.0.0
   flutter_local_notifications: ^19.2.1
   workmanager: ^0.6.0
+  device_info_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:
