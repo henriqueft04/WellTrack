@@ -164,14 +164,19 @@ class _SignUpPageState extends State<SignUpPage> {
                                         ),
                                       );
                                       
-                                      // Navigate to home page
+                                      // Redirect to login page with verification message
                                       Navigator.pushAndRemoveUntil(
                                         this.context,
                                         MaterialPageRoute(
-                                          builder: (context) => const MainNavigation(initialIndex: 0),
+                                          builder: (context) => const LoginPage(),
                                         ),
                                         (route) => false,
                                       );
+                                      
+                                      // Show email verification dialog
+                                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                                        _showEmailVerificationDialog(this.context, email);
+                                      });
                                     }
                                   } else {
                                     // Check if email already exists
@@ -280,6 +285,24 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               );
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showEmailVerificationDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Verification Required'),
+        content: Text(
+          'We have sent a verification email to $email.\nPlease check your inbox and follow the instructions to verify your email.',
+        ),
+        actions: [
+          TextButton(
+            child: const Text('OK'),
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),

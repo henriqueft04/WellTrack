@@ -66,8 +66,8 @@ class _StepsGoalPageState extends State<StepsGoalPage> {
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       trackHeight: 16,
-                      activeTrackColor: Color(0xFF9CD0FF),
-                      inactiveTrackColor: Color(0xFF9CD0FF).withValues(alpha: 0.3),
+                      activeTrackColor: const Color(0xFF9CD0FF),
+                      inactiveTrackColor: const Color(0xFF9CD0FF).withValues(alpha: 0.3),
                       thumbColor: Colors.white,
                       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 16),
                     ),

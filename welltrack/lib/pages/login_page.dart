@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Signed in with Google successfully!'),
+              content: const Text('Signed in with Google successfully!'),
               backgroundColor: HexColor("#DEC5E3"),
             ),
           );
