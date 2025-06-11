@@ -232,7 +232,7 @@ class BluetoothProvider with ChangeNotifier {
     _scanResultsSubscription = FlutterBluePlus.scanResults.listen(
       (List<ScanResult> results) {
         _scanResults = results;
-        _parseNearbyUsers(results);
+        // Don't parse immediately - wait for scan to complete
         notifyListeners();
       },
     );
@@ -241,10 +241,13 @@ class BluetoothProvider with ChangeNotifier {
       (bool scanning) {
         _isScanning = scanning;
         
-        if (!scanning && _nearbyUsers.isEmpty) {
-          _setStatusMessage('No nearby users found');
-        } else if (!scanning && _nearbyUsers.isNotEmpty) {
-          _setStatusMessage('Found ${_nearbyUsers.length} nearby WellTrack users');
+        if (!scanning) {
+          // Scan completed - now parse the results
+          if (_scanResults.isNotEmpty) {
+            _parseNearbyUsers(_scanResults);
+          } else {
+            _setStatusMessage('No nearby devices found');
+          }
         }
         
         notifyListeners();
@@ -264,28 +267,11 @@ class BluetoothProvider with ChangeNotifier {
         .where((id) => id.isNotEmpty)
         .toList();
     
-    // HARDCODED TEST: Add specific MAC addresses to search
-    final hardcodedAddresses = ['SK:Q1:21:10:06:00', 'UP:1A:23:10:05:00'];
-    
-    // Only add hardcoded addresses if they're not already in the list
-    for (final addr in hardcodedAddresses) {
-      if (!deviceIds.contains(addr)) {
-        deviceIds.add(addr);
-      }
-    }
-    debugPrint('BluetoothProvider: Added hardcoded addresses for testing: $hardcodedAddresses');
-    
-    // Create a copy of results list to add mock entries
-    final allResults = List<ScanResult>.from(results);
-    
-    // Add mock ScanResult entries for hardcoded addresses (for display purposes)
-    // Note: We can't create real ScanResult objects, so we'll handle this in the lookup
-    
-    debugPrint('BluetoothProvider: Device IDs found (including hardcoded): $deviceIds');
+    debugPrint('BluetoothProvider: Device IDs found: $deviceIds');
     
     if (deviceIds.isNotEmpty) {
-      // Pass both the original results and the hardcoded addresses
-      _lookupWellTrackUsers(deviceIds, allResults, hardcodedAddresses);
+      // Only pass scan results, no hardcoded addresses
+      _lookupWellTrackUsers(deviceIds, results);
     } else {
       debugPrint('BluetoothProvider: No device IDs found in scan results');
       // Clear alerts if no users found
@@ -294,7 +280,7 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   // Lookup WellTrack users by Bluetooth device IDs in Supabase
-  Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults, [List<String>? hardcodedAddresses]) async {
+  Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults) async {
     // Add retry logic for network issues
     int retryCount = 0;
     const maxRetries = 3;
@@ -321,8 +307,11 @@ class BluetoothProvider with ChangeNotifier {
         debugPrint('BluetoothProvider: Database lookup response: $response');
         
         if (response == null || (response as List).isEmpty) {
-          debugPrint('BluetoothProvider: No WellTrack users found in database');
-          _clearStaleAlerts();
+          debugPrint('BluetoothProvider: No WellTrack users found in database for scanned devices');
+          
+          // Try hardcoded addresses as fallback
+          debugPrint('BluetoothProvider: Trying hardcoded addresses as fallback...');
+          await _tryHardcodedAddresses();
           return;
         }
       
@@ -365,32 +354,6 @@ class BluetoothProvider with ChangeNotifier {
           }
         }
         
-        // If no scan result found, check if it's a hardcoded address
-        if (scanResult == null && hardcodedAddresses != null) {
-          // Check if the matched ID is one of our hardcoded addresses
-          for (final hardcodedAddr in hardcodedAddresses) {
-            if (matchedId == hardcodedAddr || 
-                userData['bluetooth_device_id'] == hardcodedAddr ||
-                userData['bluetooth_mac_address'] == hardcodedAddr) {
-              // Create a mock BluetoothUser for hardcoded addresses
-              debugPrint('BluetoothProvider: Found WellTrack user via hardcoded address: ${userData['name']} with mood: ${userData['mental_state']}');
-              
-              final bluetoothUser = BluetoothUser(
-                deviceId: hardcodedAddr,
-                username: userData['name'] ?? 'WellTrack User',
-                avatarUrl: userData['avatar'],
-                mentalState: userData['mental_state'],
-                lastUpdate: DateTime.now(),
-                signalStrength: -70, // Mock signal strength for hardcoded
-              );
-              
-              _nearbyUsers.add(bluetoothUser);
-              addedUserIds.add(userId); // Mark as added
-              break;
-            }
-          }
-          continue; // Skip to next user if no match
-        }
         
         if (scanResult == null) continue;
         
@@ -704,15 +667,99 @@ class BluetoothProvider with ChangeNotifier {
     notifyListeners();
   }
   
-  // Test hardcoded addresses directly
-  Future<void> testHardcodedAddresses() async {
-    debugPrint('BluetoothProvider: Testing hardcoded addresses directly');
-    _clearScanResults();
-    _setStatusMessage('Testing hardcoded addresses...');
+  // Try hardcoded addresses when no users found in database
+  Future<void> _tryHardcodedAddresses() async {
+    _setStatusMessage('No users found. Checking test addresses...');
     
     final hardcodedAddresses = ['SK:Q1:21:10:06:00', 'UP:1A:23:10:05:00'];
-    await _lookupWellTrackUsers(hardcodedAddresses, [], hardcodedAddresses);
+    debugPrint('BluetoothProvider: Trying hardcoded addresses: $hardcodedAddresses');
+    
+    // Don't clear existing results - we might have found devices, just no users
+    // _nearbyUsers should already be empty if we're here
+    
+    // Lookup hardcoded addresses
+    await _lookupWellTrackUsersDirectly(hardcodedAddresses);
   }
+  
+  // Direct lookup without scan results
+  Future<void> _lookupWellTrackUsersDirectly(List<String> deviceIds) async {
+    int retryCount = 0;
+    const maxRetries = 3;
+    
+    while (retryCount < maxRetries) {
+      try {
+        debugPrint('BluetoothProvider: Direct lookup for device IDs: $deviceIds (attempt ${retryCount + 1}/$maxRetries)');
+        
+        final supabase = Supabase.instance.client;
+        
+        final response = await supabase
+            .rpc('lookup_users_by_bluetooth_ids', params: {
+              'device_ids': deviceIds
+            })
+            .timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                throw Exception('Database lookup timed out');
+              },
+            );
+        
+        debugPrint('BluetoothProvider: Database lookup response: $response');
+        
+        if (response == null || (response as List).isEmpty) {
+          debugPrint('BluetoothProvider: No WellTrack users found with hardcoded addresses');
+          _setStatusMessage('No test users found');
+          return;
+        }
+        
+        // Keep track of already added users to avoid duplicates
+        final addedUserIds = <int>{};
+        
+        // Convert database results to BluetoothUser objects
+        for (final userData in response) {
+          // Check if we've already added this user
+          final userId = userData['user_id'] as int;
+          if (addedUserIds.contains(userId)) {
+            continue;
+          }
+          
+          debugPrint('BluetoothProvider: Found test user: ${userData['name']} with mood: ${userData['mental_state']}');
+          
+          final bluetoothUser = BluetoothUser(
+            deviceId: userData['bluetooth_device_id'] ?? userData['bluetooth_mac_address'] ?? 'unknown',
+            username: userData['name'] ?? 'WellTrack User',
+            avatarUrl: userData['avatar'],
+            mentalState: userData['mental_state'],
+            lastUpdate: DateTime.now(),
+            signalStrength: -70, // Mock signal strength
+          );
+          
+          _nearbyUsers.add(bluetoothUser);
+          addedUserIds.add(userId);
+        }
+        
+        if (_nearbyUsers.isNotEmpty) {
+          _setStatusMessage('Found ${_nearbyUsers.length} test users');
+        }
+        
+        notifyListeners();
+        return; // Success - exit the retry loop
+        
+      } catch (e, stackTrace) {
+        retryCount++;
+        
+        if (retryCount >= maxRetries) {
+          debugPrint('BluetoothProvider: Failed to lookup test addresses after $maxRetries attempts: $e');
+          debugPrint('Stack trace: $stackTrace');
+          _setStatusMessage('Failed to check test addresses');
+          return;
+        }
+        
+        // Wait before retrying
+        await Future.delayed(const Duration(seconds: 2));
+      }
+    }
+  }
+  
 
   // Start simulation with mock users
   void _startSimulation() {
