@@ -264,10 +264,22 @@ class BluetoothProvider with ChangeNotifier {
         .where((id) => id.isNotEmpty)
         .toList();
     
-    debugPrint('BluetoothProvider: Device IDs found: $deviceIds');
+    // HARDCODED TEST: Add specific MAC addresses to search
+    final hardcodedAddresses = ['SK:Q1:21:10:06:00', 'UP:1A:23:10:05:00'];
+    deviceIds.addAll(hardcodedAddresses);
+    debugPrint('BluetoothProvider: Adding hardcoded addresses for testing: $hardcodedAddresses');
+    
+    // Create a copy of results list to add mock entries
+    final allResults = List<ScanResult>.from(results);
+    
+    // Add mock ScanResult entries for hardcoded addresses (for display purposes)
+    // Note: We can't create real ScanResult objects, so we'll handle this in the lookup
+    
+    debugPrint('BluetoothProvider: Device IDs found (including hardcoded): $deviceIds');
     
     if (deviceIds.isNotEmpty) {
-      _lookupWellTrackUsers(deviceIds, results);
+      // Pass both the original results and the hardcoded addresses
+      _lookupWellTrackUsers(deviceIds, allResults, hardcodedAddresses);
     } else {
       debugPrint('BluetoothProvider: No device IDs found in scan results');
       // Clear alerts if no users found
@@ -276,7 +288,7 @@ class BluetoothProvider with ChangeNotifier {
   }
 
   // Lookup WellTrack users by Bluetooth device IDs in Supabase
-  Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults) async {
+  Future<void> _lookupWellTrackUsers(List<String> deviceIds, List<ScanResult> scanResults, [List<String>? hardcodedAddresses]) async {
     // Add retry logic for network issues
     int retryCount = 0;
     const maxRetries = 3;
@@ -335,6 +347,32 @@ class BluetoothProvider with ChangeNotifier {
               break;
             }
           }
+        }
+        
+        // If no scan result found, check if it's a hardcoded address
+        if (scanResult == null && hardcodedAddresses != null) {
+          // Check if the matched ID is one of our hardcoded addresses
+          for (final hardcodedAddr in hardcodedAddresses) {
+            if (matchedId == hardcodedAddr || 
+                userData['bluetooth_device_id'] == hardcodedAddr ||
+                userData['bluetooth_mac_address'] == hardcodedAddr) {
+              // Create a mock BluetoothUser for hardcoded addresses
+              debugPrint('BluetoothProvider: Found WellTrack user via hardcoded address: ${userData['name']} with mood: ${userData['mental_state']}');
+              
+              final bluetoothUser = BluetoothUser(
+                deviceId: hardcodedAddr,
+                username: userData['name'] ?? 'WellTrack User',
+                avatarUrl: userData['avatar'],
+                mentalState: userData['mental_state'],
+                lastUpdate: DateTime.now(),
+                signalStrength: -70, // Mock signal strength for hardcoded
+              );
+              
+              _nearbyUsers.add(bluetoothUser);
+              break;
+            }
+          }
+          continue; // Skip to next user if no match
         }
         
         if (scanResult == null) continue;
@@ -646,6 +684,16 @@ class BluetoothProvider with ChangeNotifier {
       _stopSimulation();
     }
     notifyListeners();
+  }
+  
+  // Test hardcoded addresses directly
+  Future<void> testHardcodedAddresses() async {
+    debugPrint('BluetoothProvider: Testing hardcoded addresses directly');
+    _clearScanResults();
+    _setStatusMessage('Testing hardcoded addresses...');
+    
+    final hardcodedAddresses = ['SK:Q1:21:10:06:00', 'UP:1A:23:10:05:00'];
+    await _lookupWellTrackUsers(hardcodedAddresses, [], hardcodedAddresses);
   }
 
   // Start simulation with mock users
