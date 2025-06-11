@@ -266,8 +266,14 @@ class BluetoothProvider with ChangeNotifier {
     
     // HARDCODED TEST: Add specific MAC addresses to search
     final hardcodedAddresses = ['SK:Q1:21:10:06:00', 'UP:1A:23:10:05:00'];
-    deviceIds.addAll(hardcodedAddresses);
-    debugPrint('BluetoothProvider: Adding hardcoded addresses for testing: $hardcodedAddresses');
+    
+    // Only add hardcoded addresses if they're not already in the list
+    for (final addr in hardcodedAddresses) {
+      if (!deviceIds.contains(addr)) {
+        deviceIds.add(addr);
+      }
+    }
+    debugPrint('BluetoothProvider: Added hardcoded addresses for testing: $hardcodedAddresses');
     
     // Create a copy of results list to add mock entries
     final allResults = List<ScanResult>.from(results);
@@ -330,8 +336,18 @@ class BluetoothProvider with ChangeNotifier {
         deviceToScanResult[deviceId.toLowerCase()] = result;
       }
       
+      // Keep track of already added users to avoid duplicates
+      final addedUserIds = <int>{};
+      
       // Convert database results to BluetoothUser objects
       for (final userData in response) {
+        // Check if we've already added this user
+        final userId = userData['user_id'] as int;
+        if (addedUserIds.contains(userId)) {
+          debugPrint('BluetoothProvider: Skipping duplicate user ID: $userId');
+          continue;
+        }
+        
         final matchedId = userData['matched_id'] as String?;
         if (matchedId == null) continue;
         
@@ -369,6 +385,7 @@ class BluetoothProvider with ChangeNotifier {
               );
               
               _nearbyUsers.add(bluetoothUser);
+              addedUserIds.add(userId); // Mark as added
               break;
             }
           }
@@ -389,6 +406,7 @@ class BluetoothProvider with ChangeNotifier {
         );
         
         _nearbyUsers.add(bluetoothUser);
+        addedUserIds.add(userId); // Mark as added
       }
       
       // Clear stale alerts and check for users needing support

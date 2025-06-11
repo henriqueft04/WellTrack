@@ -18,12 +18,6 @@ flutter run -d <device_id>
 # List available devices
 flutter devices
 
-# Generate code (required after modifying injectable annotations)
-flutter pub run build_runner build --delete-conflicting-outputs
-
-# Watch for changes and regenerate code
-flutter pub run build_runner watch --delete-conflicting-outputs
-
 # Clean build
 flutter clean
 
@@ -158,12 +152,6 @@ journal_entries:
   - created_at TEXT
   - updated_at TEXT
 ```
-
-### Current Development Branch
-- Working on `feature/journalupdate` branch
-- Adding audio transcription capabilities
-- Enhanced journal entry models
-- Modified services: database_helper, journal entries
 
 ### Environment Configuration
 - Google Maps API keys in platform-specific files

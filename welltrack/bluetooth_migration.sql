@@ -68,7 +68,7 @@ RETURNS TABLE (
     mental_state mental_states,
     bluetooth_device_id VARCHAR,
     bluetooth_mac_address VARCHAR,
-    matched_id TEXT
+    matched_id VARCHAR
 ) 
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -96,7 +96,7 @@ BEGIN
                 ELSE NULL
             END,
             u.bluetooth_device_id
-        ) as matched_id
+        )::VARCHAR as matched_id
     FROM public.users u
     CROSS JOIN normalized_ids n
     WHERE 
