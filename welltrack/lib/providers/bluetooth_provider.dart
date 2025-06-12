@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -8,6 +9,7 @@ import 'package:welltrack/providers/user_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vibration/vibration.dart';
 import 'package:welltrack/services/bluetooth_service.dart' as welltrack_bluetooth;
+import 'package:flutter/services.dart';
 
 class BluetoothProvider with ChangeNotifier {
   // Private state variables
@@ -56,6 +58,9 @@ class BluetoothProvider with ChangeNotifier {
   bool get canScan => _isBluetoothSupported && _isBluetoothOn && !_isLoading;
   bool get isVibrationEnabled => _isVibrationEnabled;
   bool get isVibrationSupported => _isVibrationSupported;
+  
+  // Get the current user profile safely
+  Map<String, dynamic>? get currentUserProfile => _userProvider?.userProfile;
 
   // Set user provider for accessing profile data
   void setUserProvider(UserProvider userProvider) {
@@ -86,6 +91,12 @@ class BluetoothProvider with ChangeNotifier {
 
       // Check if device is already registered
       await _checkDeviceRegistration();
+      
+      // Register device ID if not already registered
+      if (!_isDeviceRegistered && _userProvider?.userProfile != null) {
+        debugPrint('BluetoothProvider: Device not registered, registering now...');
+        await storeBluetoothDeviceId();
+      }
 
       // Request permissions
       await _requestPermissions();
@@ -154,9 +165,18 @@ class BluetoothProvider with ChangeNotifier {
       final advertisementData = BluetoothUser.encodeUserData(username, mentalState, avatarHash);
       final advertisementName = 'WT:$advertisementData';
 
-      // Note: flutter_blue_plus doesn't support advertising directly
-      // We'll need to use the device name as a workaround
-      // In a production app, you might need a different approach or custom platform implementation
+      // Set the device name to advertise our presence
+      // This uses platform-specific code for Android
+      try {
+        debugPrint('BluetoothProvider: Setting device name to: $advertisementName');
+        if (Platform.isAndroid) {
+          const platform = MethodChannel('com.welltrack/bluetooth');
+          final result = await platform.invokeMethod('setDeviceName', {'name': advertisementName});
+          debugPrint('BluetoothProvider: Set device name result: $result');
+        }
+      } catch (e) {
+        debugPrint('BluetoothProvider: Error setting device name: $e');
+      }
       
       _isAdvertising = true;
       _setStatusMessage('Sharing mood with nearby users');
@@ -263,21 +283,58 @@ class BluetoothProvider with ChangeNotifier {
     
     debugPrint('BluetoothProvider: Found ${results.length} scan results');
     
-    // Get device IDs from scan results
-    final deviceIds = results
-        .map((result) => result.device.remoteId.toString())
-        .where((id) => id.isNotEmpty)
-        .toList();
+    // Filter for devices with 'WT:' prefix in their name (WellTrack users)
+    final welltrackResults = results.where((result) {
+      final name = result.advertisementData.advName;
+      return name.isNotEmpty && name.startsWith('WT:');
+    }).toList();
     
-    debugPrint('BluetoothProvider: Device IDs found: $deviceIds');
+    debugPrint('BluetoothProvider: Found ${welltrackResults.length} WellTrack device advertisements');
     
-    if (deviceIds.isNotEmpty) {
-      // Only pass scan results, no hardcoded addresses
-      _lookupWellTrackUsers(deviceIds, results);
+    if (welltrackResults.isNotEmpty) {
+      // Process found WellTrack users
+      for (final result in welltrackResults) {
+        final advName = result.advertisementData.advName;
+        debugPrint('BluetoothProvider: Processing WellTrack advertisement: $advName');
+        
+        // Parse the advertisement data (remove 'WT:' prefix)
+        final bluetoothUser = BluetoothUser.parseAdvertisementData(
+          result.device.remoteId.toString(),
+          advName,
+          result.rssi
+        );
+        
+        if (bluetoothUser != null) {
+          _nearbyUsers.add(bluetoothUser);
+          debugPrint('BluetoothProvider: Added user ${bluetoothUser.username} with mood: ${bluetoothUser.mentalState}');
+        }
+      }
+      
+      // Also try database lookup for device IDs (in case they're not broadcasting but are registered)
+      final deviceIds = results
+          .map((result) => result.device.remoteId.toString())
+          .where((id) => id.isNotEmpty)
+          .toList();
+      
+      if (deviceIds.isNotEmpty) {
+        _lookupWellTrackUsers(deviceIds, results);
+      }
     } else {
-      debugPrint('BluetoothProvider: No device IDs found in scan results');
-      // No devices found - try hardcoded addresses
-      _tryHardcodedAddresses();
+      // No WellTrack devices found in scan, try database lookup
+      final deviceIds = results
+          .map((result) => result.device.remoteId.toString())
+          .where((id) => id.isNotEmpty)
+          .toList();
+      
+      debugPrint('BluetoothProvider: No WellTrack advertisements found, looking up ${deviceIds.length} device IDs');
+      
+      if (deviceIds.isNotEmpty) {
+        _lookupWellTrackUsers(deviceIds, results);
+      } else {
+        debugPrint('BluetoothProvider: No device IDs found in scan results');
+        // No devices found - try hardcoded addresses
+        _tryHardcodedAddresses();
+      }
     }
   }
 
@@ -543,6 +600,7 @@ class BluetoothProvider with ChangeNotifier {
 
     try {
       debugPrint('BluetoothProvider: Starting Bluetooth scan...');
+      // Scan for devices with name prefix 'WT:' instead of filtering by service UUID
       await FlutterBluePlus.startScan(
         timeout: timeout ?? const Duration(seconds: 15),
         androidUsesFineLocation: true,

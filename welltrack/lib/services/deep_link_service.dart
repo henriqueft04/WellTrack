@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:welltrack/main.dart';
 import 'package:welltrack/pages/login_page.dart';
 import 'package:welltrack/components/main_navigation.dart';

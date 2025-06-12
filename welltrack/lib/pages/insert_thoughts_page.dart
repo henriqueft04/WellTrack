@@ -58,7 +58,7 @@ class _InsertThoughtsPageState extends State<InsertThoughtsPage>
                 return TabBar(
                   controller: _tabController,
                   indicator: UnderlineTabIndicator(
-                    borderSide: BorderSide(width: 4.0, color: selectedColor),
+                    borderSide: const BorderSide(width: 4.0, color: selectedColor),
                     insets: EdgeInsets.symmetric(
                       horizontal: (MediaQuery.of(context).size.width / 3 - 32) / 2,
                     ),

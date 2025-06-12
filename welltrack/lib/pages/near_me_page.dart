@@ -64,21 +64,16 @@ class _NearMePageState extends State<NearMePage> {
   void _showBluetoothDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Enable Bluetooth'),
-          content: const Text(
-            'Bluetooth is required to discover nearby WellTrack users. '
-            'Please enable Bluetooth in your device settings and try again.',
+      builder: (context) => AlertDialog(
+        title: const Text('Bluetooth is Disabled'),
+        content: const Text('Please enable Bluetooth in your device settings to scan for nearby users.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -627,6 +622,22 @@ class _NearMePageState extends State<NearMePage> {
                       ],
                     ),
                   ),
+                  
+                // Diagnostic Button
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.bug_report),
+                    label: const Text('Run Bluetooth Diagnostics'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.amber[700],
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () => _runBluetoothDiagnostics(bluetoothProvider),
+                  ),
+                ),
 
                 // Bottom padding for scrolling
                 const SizedBox(height: 100),
@@ -634,6 +645,58 @@ class _NearMePageState extends State<NearMePage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  // Run Bluetooth diagnostics
+  void _runBluetoothDiagnostics(BluetoothProvider provider) {
+    final deviceId = provider.currentUserProfile?['bluetooth_device_id'] ?? 'Not registered';
+    final isBluetoothOn = provider.isBluetoothOn ? 'ON' : 'OFF';
+    final isAdvertising = provider.isAdvertising ? 'YES' : 'NO';
+    final scanResults = provider.scanResults.length;
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Bluetooth Diagnostics'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Bluetooth: $isBluetoothOn'),
+              Text('Registered Device ID: $deviceId'),
+              Text('Broadcasting Mood: $isAdvertising'),
+              Text('Scan Results: $scanResults'),
+              const SizedBox(height: 16),
+              const Text('Actions to try:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text('• Make sure Bluetooth is ON'),
+              const Text('• Enable "Share My Mood" toggle'),
+              const Text('• Try scanning again'),
+              const Text('• Restart the app'),
+              const Text('• Check that other devices have Bluetooth ON'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  provider.storeBluetoothDeviceId();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Re-registered device ID')),
+                  );
+                },
+                child: const Text('Re-register Device ID'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }
